@@ -1,185 +1,133 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { FiLogOut, FiUser, FiBell, FiMenu, FiX, FiHome, FiBook, FiSettings, FiMoon, FiSun } from 'react-icons/fi';
-import { jwtDecode } from 'jwt-decode';
+import { useNavigate, Link } from 'react-router-dom';
+import { FiLogOut, FiBell, FiMenu, FiX, FiCheckCircle, FiAlertTriangle, FiInfo, FiUser } from 'react-icons/fi';
+import api from '../../api/axios'; 
 
 const Header = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userName, setUserName] = useState('Foydalanuvchi');
-  const [userRole, setUserRole] = useState('O\'QUVCHI PANELI');
-  
-  // DARK MODE HOOK - Localstorage bilan bog'langan
-  const [isDark, setIsDark] = useState(() => {
-    return localStorage.getItem('theme') === 'dark';
-  });
+  const [isNotifyOpen, setIsNotifyOpen] = useState(false);
+  const [stats, setStats] = useState(null);
+  const [userName, setUserName] = useState('Talaba');
 
   useEffect(() => {
-    // 1. Ism va Rolni olish logikasi
-    const storedName = localStorage.getItem('userFullname') || localStorage.getItem('userName');
-    const token = localStorage.getItem('token');
-
-    if (storedName) setUserName(storedName);
-
-    if (token) {
+    const fetchData = async () => {
       try {
-        const decoded = jwtDecode(token);
-        // Agar tokenda ism bo'lsa va localstorage-da bo'lmasa, tokendagini olamiz
-        if (!storedName) {
-           setUserName(decoded.fullname || decoded.full_name || 'Foydalanuvchi');
-        }
-        // Rolni aniqlash
-        setUserRole(decoded.role === 'admin' ? 'ADMIN PANEL' : 'O\'QUVCHI PANELI');
-      } catch (e) { 
-        console.error("Token decode xatosi:", e); 
+        const res = await api.get('/my-stats');
+        setStats(res.data);
+        const storedName = localStorage.getItem('userFullname') || localStorage.getItem('userName');
+        if (storedName) setUserName(storedName);
+      } catch (e) {
+        console.error("Xatolik:", e);
       }
-    }
+    };
+    fetchData();
+  }, []);
 
-    // 2. DARK MODE QO'LLASH (Tailwind 'dark' class orqali)
-    if (isDark) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDark]);
-
-  const toggleTheme = () => setIsDark(!isDark);
+  const hasDebt = stats?.remaining_debt > 0;
 
   const handleLogout = () => {
     localStorage.clear();
     navigate('/login');
   };
 
-  const menuItems = [
-    { name: 'Bosh sahifa', path: '/', icon: <FiHome /> },
-    { name: 'Kurslar', path: '/courses', icon: <FiBook /> },
-    { name: 'Mening profilim', path: '/profile', icon: <FiUser /> },
-    { name: 'Sozlamalar', path: '/settings', icon: <FiSettings /> },
-  ];
-
   return (
     <>
-      <header className="h-16 md:h-20 bg-white dark:bg-[#0F172A] border-b border-gray-100 dark:border-slate-800 sticky top-0 z-[100] px-4 md:px-8 transition-colors duration-300">
+      {/* Header: Glassmorphism effekti bilan */}
+      <header className="h-24 bg-white/70 backdrop-blur-xl border-b border-white/50 sticky top-0 z-[100] px-4 md:px-8 transition-all duration-300">
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between">
           
-          {/* CHAP TOMON: Burger + Logo */}
+          {/* Logo qismi */}
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsMenuOpen(true)}
-              className="p-2 md:hidden text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all"
-            >
-              <FiMenu size={24} />
-            </button>
-            
-            <Link to="/" className="flex items-center gap-2 md:gap-3">
-              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-indigo-100 dark:shadow-none">
-               T
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="w-12 h-12 bg-indigo-600 rounded-[1.2rem] flex items-center justify-center text-white font-black shadow-xl shadow-indigo-200/50 group-hover:rotate-6 transition-transform duration-500 text-xl">
+                T
               </div>
-              <span className="font-black text-gray-800 dark:text-white text-lg md:text-xl tracking-tight hidden xs:block">
-                Smart <span className="text-indigo-600">LMS</span>
-              </span>
+              <div className="hidden sm:block">
+                <h1 className="font-black text-slate-800 text-lg leading-none tracking-tighter uppercase">Turon Ta'lim</h1>
+                <p className="text-[10px] font-bold text-indigo-500 tracking-[0.2em] uppercase opacity-70"></p>
+              </div>
             </Link>
           </div>
 
-          {/* O'NG TOMON: Theme Toggle + Profil */}
-          <div className="flex items-center gap-2 md:gap-4">
+          <div className="flex items-center gap-3 md:gap-6">
             
-            {/* DARK MODE TUGMASI */}
-            <button 
-              onClick={toggleTheme}
-              className="p-2.5 text-gray-500 dark:text-amber-400 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all border border-transparent dark:border-slate-700"
-              title={isDark ? "Light mode" : "Dark mode"}
-            >
-              {isDark ? <FiSun size={20} /> : <FiMoon size={20} />}
-            </button>
-
-            <button className="p-2.5 text-gray-400 dark:text-slate-500 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-xl transition-all hidden sm:block">
-              <FiBell size={20} />
-            </button>
-
-            <div className="h-8 w-px bg-gray-100 dark:bg-slate-800 mx-1 hidden md:block"></div>
-
-            {/* Profil bloki */}
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <h4 className="text-sm font-black text-[#1E293B] dark:text-slate-200 leading-none uppercase tracking-tight">
-                  {userName}
-                </h4>
-                <p className="text-[10px] font-bold text-emerald-500 mt-1.5 tracking-wider">
-                  {userRole}
-                </p>
-              </div>
-
-              {/* Ism birinchi harfi bilan dinamik avatar */}
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-rose-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-100 dark:shadow-none border-2 border-white dark:border-slate-700 cursor-pointer hover:scale-105 transition-transform font-bold">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-
+            {/* NOTIFICATION SECTION */}
+            <div className="relative">
               <button 
-                onClick={handleLogout}
-                className="p-2.5 text-gray-300 dark:text-slate-600 hover:text-rose-500 dark:hover:text-rose-400 transition-colors hidden md:block"
+                onClick={() => setIsNotifyOpen(!isNotifyOpen)}
+                className={`p-3 rounded-2xl transition-all border-2 relative group ${
+                  hasDebt 
+                  ? 'text-rose-500 bg-rose-50 border-rose-100 animate-pulse' 
+                  : 'text-indigo-500 bg-indigo-50 border-indigo-100'
+                }`}
               >
-                <FiLogOut size={22} />
+                <FiBell size={20} className="group-hover:rotate-12 transition-transform" />
+                {hasDebt && (
+                  <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-rose-600 rounded-full border-2 border-white"></span>
+                )}
               </button>
+
+              {/* MODAL OYNA */}
+              {isNotifyOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsNotifyOpen(false)}></div>
+                  <div className="absolute right-0 mt-4 w-80 bg-white rounded-[2.5rem] shadow-[0_20px_60px_rgba(79,70,229,0.15)] border border-indigo-50 p-6 z-20 animate-in fade-in zoom-in duration-200">
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="font-black text-slate-800 text-[10px] uppercase tracking-widest">Xabarnoma</h3>
+                      <button onClick={() => setIsNotifyOpen(false)} className="w-8 h-8 flex items-center justify-center hover:bg-slate-50 rounded-xl transition-colors">
+                        <FiX className="text-slate-400" />
+                      </button>
+                    </div>
+
+                    {hasDebt ? (
+                      <div className="space-y-4">
+                        <div className="p-5 bg-gradient-to-br from-rose-50 to-white rounded-[1.5rem] border border-rose-100">
+                          <FiAlertTriangle size={24} className="text-rose-500 mb-3" />
+                          <h4 className="font-black text-rose-600 uppercase text-[10px] mb-2 tracking-widest">To'lov kechikmoqda!</h4>
+                          <p className="text-[11px] font-bold text-slate-600 leading-relaxed uppercase">
+                            Qarzdorlik: <span className="text-rose-600 underline">{stats.remaining_debt?.toLocaleString()} so'm</span>. Iltimos, to'lovni amalga oshiring.
+                          </p>
+                        </div>
+                        <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all shadow-lg shadow-indigo-100">
+                          To'lov sahifasiga o'tish
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="p-5 bg-gradient-to-br from-emerald-50 to-white rounded-[1.5rem] border border-emerald-100 flex flex-col items-center text-center">
+                        <FiCheckCircle size={32} className="text-emerald-500 mb-3" />
+                        <h4 className="font-black text-emerald-600 uppercase text-[10px] tracking-widest">Hammasi joyida!</h4>
+                        <p className="text-[10px] font-bold text-slate-500 mt-2 uppercase">Sizda faol qarzdorlik mavjud emas.</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
+
+            <div className="h-8 w-[1px] bg-slate-200/60 hidden md:block"></div>
+
+            {/* PROFIL SECTION */}
+            <div className="flex items-center gap-4 group cursor-pointer" onClick={handleLogout}>
+               <div className="text-right hidden md:block">
+                  <p className="text-[11px] font-black text-slate-800 uppercase leading-none tracking-tighter">{userName}</p>
+                  <p className={`text-[9px] font-black mt-1 tracking-widest flex items-center justify-end gap-1 ${hasDebt ? 'text-rose-500' : 'text-emerald-500'}`}>
+                    {hasDebt ? 'QARZ' : 'FAOL'} <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+                  </p>
+               </div>
+               <div className="relative">
+                  <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 font-black shadow-sm border border-indigo-50 group-hover:border-indigo-200 transition-all overflow-hidden">
+                    {userName.charAt(0).toUpperCase()}
+                    {/* Logout Hover Overlay */}
+                    <div className="absolute inset-0 bg-indigo-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <FiLogOut size={18} />
+                    </div>
+                  </div>
+               </div>
+            </div>
+
           </div>
         </div>
       </header>
-
-      {/* MOBILE DRAWER */}
-      <div className={`fixed inset-0 z-[110] ${isMenuOpen ? 'visible' : 'invisible'}`}>
-        <div 
-          className={`absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 ${isMenuOpen ? 'opacity-100' : 'opacity-0'}`}
-          onClick={() => setIsMenuOpen(false)}
-        />
-        
-        <div className={`absolute top-0 left-0 h-full w-[280px] bg-white dark:bg-[#1E293B] shadow-2xl transition-transform duration-300 ease-in-out flex flex-col ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          <div className="p-6 border-b border-gray-50 dark:border-slate-800 flex items-center justify-between bg-indigo-50/30 dark:bg-slate-800/50">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-black">OM</div>
-              <span className="font-black text-gray-800 dark:text-white tracking-tight text-lg">Smart LMS</span>
-            </div>
-            <button onClick={() => setIsMenuOpen(false)} className="p-2 text-gray-400 bg-white dark:bg-slate-700 shadow-sm rounded-full">
-              <FiX size={18} />
-            </button>
-          </div>
-
-          <nav className="flex-1 p-5 space-y-1.5">
-            {menuItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsMenuOpen(false)}
-                className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition-all ${location.pathname === item.path ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
-              >
-                <span className="text-xl">{item.icon}</span>
-                <span className="text-sm">{item.name}</span>
-              </Link>
-            ))}
-          </nav>
-
-          <div className="p-6 border-t border-gray-100 dark:border-slate-800 bg-white dark:bg-[#1E293B]">
-            <div className="flex items-center gap-3 mb-5 p-2 rounded-2xl border border-gray-50 dark:border-slate-700">
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-rose-500 rounded-xl flex items-center justify-center text-white font-bold text-xl">
-                {userName.charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-black text-gray-800 dark:text-slate-200 text-sm truncate uppercase">{userName}</p>
-                <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">{userRole}</p>
-              </div>
-            </div>
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-3 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-100 transition-all"
-            >
-              <FiLogOut size={18} /> Tizimdan chiqish
-            </button>
-          </div>
-        </div>
-      </div>
     </>
   );
 };

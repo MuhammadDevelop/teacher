@@ -1,34 +1,44 @@
-import React, { useEffect } from 'react'; // useEffect qo'shildi
+import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import AppRoutes from './routes/Routes';
 import Header from './components/header/Header';
 import Footer from './components/footer/Footer';
 
-// Header va Footer faqat kerakli joyda chiqishi uchun yordamchi komponent
 const LayoutWrapper = () => {
   const location = useLocation();
 
-  // DARK MODE REFRESH BO'LGANDA SAQLANIB QOLISHI UCHUN
   useEffect(() => {
-    const theme = localStorage.getItem('theme');
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // Dark mode-ni butkul o'chiramiz va yorqin mavzuni o'rnatamiz
+    document.documentElement.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
+    
+    // Sahifa scroll bo'lganda silliq harakatlanishi uchun
+    document.documentElement.style.scrollBehavior = 'smooth';
   }, []);
 
-  // Login va Register sahifalarida Header/Footer ko'rsatmaymiz
   const noLayoutPages = ['/login', '/register'];
   const showLayout = !noLayoutPages.includes(location.pathname);
 
   return (
-    // bg-[#F8FAFC] -> dark:bg-[#0F172A] qo'shildi
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] dark:bg-[#0F172A] transition-colors duration-300">
+    /* FON: Faqat oq emas, juda och havograng va binafsha gradient ishlatildi.
+       Bu veb-saytga "toza" va "zamonaviy" ko'rinish beradi.
+    */
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#FDFDFF] via-[#F4F7FF] to-[#F1F4FF] selection:bg-indigo-100 selection:text-indigo-700">
+      
+      {/* Agar layout ko'rinishi kerak bo'lsa, Header chiqadi */}
       {showLayout && <Header />}
       
-      <main className={`flex-grow flex flex-col ${showLayout ? 'w-full max-w-7xl mx-auto p-4 md:p-8' : ''}`}>
-        <AppRoutes />
+      {/* Asosiy kontent qismi. 
+         Glassmorphism effekti uchun orqa fon biroz xiralashtirilgan bo'lishi mumkin 
+      */}
+      <main className={`flex-grow flex flex-col transition-all duration-500 ${
+        showLayout 
+          ? 'w-full max-w-7xl mx-auto p-4 md:p-8 pt-6 md:pt-10' 
+          : 'w-full'
+      }`}>
+        <div className={showLayout ? "animate-in fade-in slide-in-from-bottom-4 duration-700" : ""}>
+          <AppRoutes />
+        </div>
       </main>
 
       {showLayout && <Footer />}
