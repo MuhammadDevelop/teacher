@@ -52,6 +52,11 @@ const Register = () => {
 
     try {
       await api.post('register', formData);
+
+      // MA'LUMOTLARNI LOCALSTORAGE GA SAQLASH
+      localStorage.setItem('userFullname', formData.fullname);
+      localStorage.setItem('course_type', formData.course);
+
       await Swal.fire({
         icon: 'success',
         title: 'Muvaffaqiyatli!',
@@ -81,7 +86,7 @@ const Register = () => {
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center bg-[#f0f4f8] overflow-x-hidden p-4 sm:p-6">
       
-      {/* Dynamic Background Elements - Mobil uchun optimal */}
+      {/* Dynamic Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] right-[-5%] w-64 h-64 sm:w-96 sm:h-96 bg-emerald-200/40 rounded-full blur-[80px] sm:blur-[120px]" />
         <div className="absolute bottom-[-5%] left-[-5%] w-64 h-64 sm:w-96 sm:h-96 bg-blue-200/40 rounded-full blur-[80px] sm:blur-[120px]" />
@@ -95,15 +100,13 @@ const Register = () => {
       >
         <motion.div variants={itemVariants} className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-2xl text-white text-2xl font-bold mb-4 shadow-lg shadow-emerald-200 ring-4 ring-emerald-50">
-            OM
+            T
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">Ro'yxatdan o'tish</h2>
           <p className="text-slate-500 mt-2 font-medium text-sm sm:text-base">Kelajak sari birinchi qadam</p>
         </motion.div>
 
         <form onSubmit={handleRegister} className="space-y-4">
-          
-          {/* Har bir inputni animatsiya bilan chiqaramiz */}
           {[
             { id: 'fullname', type: 'text', placeholder: 'Ism-sharifingiz', icon: <FiUser /> },
             { id: 'email', type: 'email', placeholder: 'Email manzilingiz', icon: <FiMail /> },
@@ -126,7 +129,6 @@ const Register = () => {
             </motion.div>
           ))}
 
-          {/* Course Select */}
           <motion.div variants={itemVariants} className="space-y-1">
             <div className={`group flex items-center border-2 rounded-2xl transition-all ${errors.course ? 'border-red-300 bg-red-50' : 'border-slate-100 bg-slate-50 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-50'}`}>
               <FiBookOpen className="ml-4 text-slate-400 group-focus-within:text-emerald-500" />
@@ -138,7 +140,6 @@ const Register = () => {
             </div>
           </motion.div>
 
-          {/* Password Input */}
           <motion.div variants={itemVariants} className="space-y-1">
             <div className={`group flex items-center border-2 rounded-2xl transition-all ${errors.password ? 'border-red-300 bg-red-50' : 'border-slate-100 bg-slate-50 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-4 focus-within:ring-emerald-50'}`}>
               <FiLock className="ml-4 text-slate-400 group-focus-within:text-emerald-500" />
@@ -150,7 +151,6 @@ const Register = () => {
             {errors.password && <p className="text-red-500 text-xs font-bold ml-2 flex items-center gap-1"><FiAlertCircle /> {errors.password}</p>}
           </motion.div>
 
-          {/* Submit Button */}
           <motion.button 
             variants={itemVariants}
             whileHover={{ scale: 1.02, backgroundColor: '#065f46' }}
