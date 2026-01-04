@@ -42,9 +42,9 @@ const AppRoutes = () => {
     // Sayt ochilganda ("/") agar login qilmagan bo'lsa, birinchi Register chiqadi
     { 
       path: '/', 
-      element: token 
-        ? <Navigate to="/student/dashboard" replace /> 
-        : <Navigate to="/register" replace /> 
+element: (token && token !== "undefined" && token !== "null") 
+  ? <Navigate to="/student/dashboard" replace /> 
+  : <Navigate to="/register" replace />
     },
     
     // Noto'g'ri manzil yozilsa ham Registerga yuborgan ma'qul (yoki Login)
