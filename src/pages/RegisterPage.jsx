@@ -1,283 +1,207 @@
 import { useState } from 'react'
 import { registerUser } from '../api'
 
-/* ── Inline SVG Icons ── */
 const UserIcon = () => (
-  <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
 )
 const PhoneIcon = () => (
-  <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
 )
 const CompassIcon = () => (
-  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
 )
-const BriefcaseIcon = () => (
-  <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+const LayersIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
 )
 const CodeIcon = () => (
-  <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
 )
 
-/* ── Technology options per direction ── */
 const TECH_MAP = {
-  'Frontend': ['HTML/CSS', 'JavaScript', 'React', 'Vue.js', 'Angular', 'Next.js', 'TypeScript'],
-  'Backend': ['Python', 'Node.js', 'Java', 'Go', 'Django', 'FastAPI', 'Express.js'],
-  'Mobile': ['Flutter', 'React Native', 'Swift', 'Kotlin'],
-  'Full Stack': ['MERN', 'MEAN', 'Python+React', 'Java+Angular'],
-  'Data Science': ['Python', 'R', 'TensorFlow', 'PyTorch'],
-  'UI/UX Design': ['Figma', 'Adobe XD', 'Sketch'],
+  'Dasturlash': {
+    'Frontend': ['HTML/CSS', 'JavaScript', 'React', 'Next.js', 'TypeScript'],
+    'Backend': ['Python', 'Node.js', 'FastAPI'],
+  },
+  'Microsoft dasturlari': {
+    '_default': ['Word', 'Excel', 'Canva'],
+  },
 }
 
-const DIRECTIONS = Object.keys(TECH_MAP)
-
-const SUBJECTS = [
-  'Dasturlash',
-  'Web Development',
-  'Mobile Development',
-  'Data Science',
-  'Cyber Security',
-  'DevOps',
-]
-
 function RegisterPage({ onNavigate }) {
-  const [form, setForm] = useState({
-    fullname: '',
-    phone: '',
-    direction: '',
-    subject: '',
-    technology: '',
-  })
+  const [form, setForm] = useState({ fullname: '', phone: '', direction: '', soha: '', technology: '' })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [showSuccess, setShowSuccess] = useState(false)
 
-  const formatPhone = (raw) => {
-    const digits = raw.replace(/\D/g, '').slice(0, 9)
+  const set = (key, val) => {
+    const next = { ...form, [key]: val }
+    // Cascading reset
+    if (key === 'direction') {
+      next.soha = ''
+      next.technology = ''
+    }
+    if (key === 'soha') {
+      next.technology = ''
+    }
+    setForm(next)
+    setErrors(e => ({ ...e, [key]: '' }))
+  }
+
+  const formatPhone = (v) => {
+    const digits = v.replace(/\D/g, '').slice(0, 9)
     if (digits.length <= 2) return digits
     if (digits.length <= 5) return `${digits.slice(0, 2)} ${digits.slice(2)}`
     if (digits.length <= 7) return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5)}`
     return `${digits.slice(0, 2)} ${digits.slice(2, 5)} ${digits.slice(5, 7)} ${digits.slice(7)}`
   }
 
-  const handleChange = (field, value) => {
-    if (field === 'phone') {
-      value = formatPhone(value)
-    }
-    setForm(prev => {
-      const next = { ...prev, [field]: value }
-      // Reset technology when direction changes
-      if (field === 'direction') next.technology = ''
-      return next
-    })
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
-    }
-    setError('')
-  }
+  const showSoha = form.direction === 'Dasturlash'
+  const techOptions = form.direction === 'Microsoft dasturlari'
+    ? TECH_MAP['Microsoft dasturlari']['_default']
+    : (form.soha && TECH_MAP['Dasturlash']?.[form.soha]) || []
 
   const validate = () => {
-    const newErrors = {}
-    if (!form.fullname.trim() || form.fullname.trim().length < 2) {
-      newErrors.fullname = "Ism familiya kamida 2 ta belgidan iborat bo'lishi kerak"
-    }
-    const phoneDigits = form.phone.replace(/\D/g, '')
-    if (phoneDigits.length !== 9) {
-      newErrors.phone = "Telefon raqam 9 ta raqamdan iborat bo'lishi kerak"
-    }
-    if (!form.direction) {
-      newErrors.direction = "Yo'nalishni tanlang"
-    }
-    if (!form.subject) {
-      newErrors.subject = "Sohani tanlang"
-    }
-    if (!form.technology) {
-      newErrors.technology = "Texnologiyani tanlang"
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    const e = {}
+    if (!form.fullname.trim() || form.fullname.trim().length < 2) e.fullname = "Ism familiya kiriting"
+    if (form.phone.replace(/\s/g, '').length < 9) e.phone = "To'liq raqam kiriting"
+    if (!form.direction) e.direction = "Yo'nalish tanlang"
+    if (showSoha && !form.soha) e.soha = "Soha tanlang"
+    if (!form.technology) e.technology = "Texnologiya tanlang"
+    setErrors(e)
+    return Object.keys(e).length === 0
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
+  const handleSubmit = async () => {
     if (!validate()) return
-
-    setLoading(true)
+    setLoading(true); setError('')
     try {
-      const phoneDigits = form.phone.replace(/\D/g, '')
-      await registerUser({
+      const data = {
         fullname: form.fullname.trim(),
-        phone: `+998${phoneDigits}`,
+        phone: '998' + form.phone.replace(/\s/g, ''),
         direction: form.direction,
-        subject: form.subject,
+        soha: form.direction === 'Dasturlash' ? form.soha : null,
         technology: form.technology,
-      })
+      }
+      await registerUser(data)
       setShowSuccess(true)
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { setError(e.message) }
+    finally { setLoading(false) }
   }
 
-  const techOptions = form.direction ? (TECH_MAP[form.direction] || []) : []
+  if (showSuccess) {
+    return (
+      <div className="auth-page">
+        <div className="floating-orbs"><div className="orb orb-1"/><div className="orb orb-2"/><div className="orb orb-3"/></div>
+        <div className="auth-card" style={{animation: 'slideUp 0.6s ease', textAlign: 'center'}}>
+          <div style={{fontSize: '64px', marginBottom: '16px'}}>✅</div>
+          <h2 style={{color: 'var(--text-primary)', marginBottom: '12px', fontSize: '24px'}}>Muvaffaqiyatli!</h2>
+          <p style={{color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.6'}}>
+            Ro'yxatdan o'tdingiz! Endi Telegram botga <b style={{color: 'var(--accent-cyan)'}}>/start</b> yozing va telefon raqamingizni yuboring.
+            <br/>Sizga <b style={{color: 'var(--accent-cyan)'}}>tasdiqlash kodi</b> yuboriladi.
+          </p>
+          <div style={{background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '16px', marginBottom: '24px'}}>
+            <p style={{color: 'var(--text-muted)', fontSize: '14px', margin: 0}}>
+              📱 Bot → /start → Raqam yuboring → Kod oling → Saytda kiriting
+            </p>
+          </div>
+          <button className="gradient-btn" onClick={onNavigate} style={{width: '100%'}}>
+            🚀 Tizimga kirish
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="auth-page">
-      {/* Success Modal */}
-      {showSuccess && (
-        <div className="success-overlay">
-          <div className="success-modal">
-            <div className="success-icon">✅</div>
-            <h2 className="gradient-text">Muvaffaqiyatli!</h2>
-            <p>
-              Ro'yxatdan o'tish yakunlandi. Telegram botga kiring va telefon raqamingizni yuboring.
-              <br />
-              <strong style={{ color: 'var(--accent-cyan)' }}>Sizga tasdiqlash kodi yuboriladi.</strong>
-            </p>
-            <button
-              className="btn btn-primary btn-full"
-              onClick={onNavigate}
-            >
-              Tizimga kirish →
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="glass-card auth-card">
-        {/* Brand */}
-        <div className="auth-brand">
-          <div className="auth-brand-icon">📝</div>
-          <h1 className="gradient-text">Ro'yxatdan O'tish</h1>
-          <p>O'quv Markaziga xush kelibsiz</p>
+      <div className="floating-orbs"><div className="orb orb-1"/><div className="orb orb-2"/><div className="orb orb-3"/></div>
+      <div className="auth-card" style={{animation: 'slideUp 0.6s ease'}}>
+        <div className="auth-logo">
+          <div className="logo-icon">🎓</div>
+          <h1 className="auth-title">Ro'yxatdan O'tish</h1>
+          <p className="auth-subtitle">O'quv Markazi platformasi</p>
         </div>
 
-        {/* Global Error */}
-        {error && (
-          <div className="alert alert-error">
-            <span className="alert-icon">⚠️</span>
-            {error}
-          </div>
-        )}
+        {error && <div className="alert alert-error">⚠️ {error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          {/* Fullname */}
+        <div className="form-section">
+          {/* Ism Familiya */}
           <div className="form-group">
-            <label className="form-label">Ism Familiya</label>
+            <label>Ism Familiya</label>
             <div className="input-wrapper">
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Ismingiz va familiyangiz"
-                value={form.fullname}
-                onChange={(e) => handleChange('fullname', e.target.value)}
-                autoFocus
-              />
               <span className="input-icon"><UserIcon /></span>
+              <input type="text" placeholder="Ism Familiya" value={form.fullname}
+                onChange={e => set('fullname', e.target.value)} />
             </div>
-            {errors.fullname && <div className="form-error">{errors.fullname}</div>}
+            {errors.fullname && <span className="field-error">{errors.fullname}</span>}
           </div>
 
-          {/* Phone */}
+          {/* Telefon */}
           <div className="form-group">
-            <label className="form-label">Telefon raqam</label>
-            <div className="phone-input-group">
-              <div className="phone-prefix">+998</div>
-              <div className="input-wrapper" style={{ flex: 1 }}>
-                <input
-                  type="tel"
-                  className="form-input"
-                  placeholder="XX XXX XX XX"
-                  value={form.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
-                  autoComplete="tel"
-                />
-                <span className="input-icon" style={{ left: 'auto', right: '14px' }}>
-                  <PhoneIcon />
-                </span>
-              </div>
-            </div>
-            {errors.phone && <div className="form-error">{errors.phone}</div>}
-          </div>
-
-          {/* Direction */}
-          <div className="form-group">
-            <label className="form-label">Yo'nalish</label>
+            <label>Telefon raqam</label>
             <div className="input-wrapper">
-              <select
-                className="form-select"
-                value={form.direction}
-                onChange={(e) => handleChange('direction', e.target.value)}
-              >
-                <option value="">Yo'nalishni tanlang</option>
-                {DIRECTIONS.map(d => (
-                  <option key={d} value={d}>{d}</option>
-                ))}
-              </select>
+              <span className="input-icon"><PhoneIcon /></span>
+              <span className="phone-prefix">+998</span>
+              <input type="tel" placeholder="90 123 45 67" value={form.phone}
+                onChange={e => set('phone', formatPhone(e.target.value))} className="input-with-prefix" />
+            </div>
+            {errors.phone && <span className="field-error">{errors.phone}</span>}
+          </div>
+
+          {/* Yo'nalish */}
+          <div className="form-group">
+            <label>Yo'nalish</label>
+            <div className="input-wrapper">
               <span className="input-icon"><CompassIcon /></span>
-            </div>
-            {errors.direction && <div className="form-error">{errors.direction}</div>}
-          </div>
-
-          {/* Subject */}
-          <div className="form-group">
-            <label className="form-label">Soha</label>
-            <div className="input-wrapper">
-              <select
-                className="form-select"
-                value={form.subject}
-                onChange={(e) => handleChange('subject', e.target.value)}
-              >
-                <option value="">Sohani tanlang</option>
-                {SUBJECTS.map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
+              <select value={form.direction} onChange={e => set('direction', e.target.value)}>
+                <option value="">Tanlang...</option>
+                <option value="Dasturlash">💻 Dasturlash</option>
+                <option value="Microsoft dasturlari">📊 Microsoft dasturlari</option>
               </select>
-              <span className="input-icon"><BriefcaseIcon /></span>
             </div>
-            {errors.subject && <div className="form-error">{errors.subject}</div>}
+            {errors.direction && <span className="field-error">{errors.direction}</span>}
           </div>
 
-          {/* Technology (depends on direction) */}
-          <div className="form-group">
-            <label className="form-label">Texnologiya</label>
-            <div className="input-wrapper">
-              <select
-                className="form-select"
-                value={form.technology}
-                onChange={(e) => handleChange('technology', e.target.value)}
-                disabled={!form.direction}
-              >
-                <option value="">
-                  {form.direction ? 'Texnologiyani tanlang' : "Avval yo'nalishni tanlang"}
-                </option>
-                {techOptions.map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-              <span className="input-icon"><CodeIcon /></span>
+          {/* Soha — faqat Dasturlash uchun */}
+          {showSoha && (
+            <div className="form-group" style={{animation: 'slideUp 0.3s ease'}}>
+              <label>Soha</label>
+              <div className="input-wrapper">
+                <span className="input-icon"><LayersIcon /></span>
+                <select value={form.soha} onChange={e => set('soha', e.target.value)}>
+                  <option value="">Tanlang...</option>
+                  <option value="Frontend">🎨 Frontend</option>
+                  <option value="Backend">⚙️ Backend</option>
+                </select>
+              </div>
+              {errors.soha && <span className="field-error">{errors.soha}</span>}
             </div>
-            {errors.technology && <div className="form-error">{errors.technology}</div>}
-          </div>
+          )}
 
-          <button
-            type="submit"
-            className="btn btn-primary btn-full"
-            disabled={loading}
-          >
-            {loading ? <span className="spinner" /> : null}
-            Ro'yxatdan o'tish
+          {/* Texnologiya */}
+          {techOptions.length > 0 && (
+            <div className="form-group" style={{animation: 'slideUp 0.3s ease'}}>
+              <label>Texnologiya</label>
+              <div className="input-wrapper">
+                <span className="input-icon"><CodeIcon /></span>
+                <select value={form.technology} onChange={e => set('technology', e.target.value)}>
+                  <option value="">Tanlang...</option>
+                  {techOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              {errors.technology && <span className="field-error">{errors.technology}</span>}
+            </div>
+          )}
+
+          <button className="gradient-btn" onClick={handleSubmit} disabled={loading} style={{marginTop: '8px'}}>
+            {loading ? <span className="spinner" /> : "✨ Ro'yxatdan o'tish"}
           </button>
-        </form>
+        </div>
 
-        {/* Footer */}
         <div className="auth-footer">
-          Hisobingiz bormi?{' '}
-          <button className="link-btn" onClick={onNavigate} style={{ fontWeight: 600 }}>
-            Tizimga kiring
-          </button>
+          <span>Hisobingiz bormi? </span>
+          <button className="link-btn accent" onClick={onNavigate}>Tizimga kiring →</button>
         </div>
       </div>
     </div>
