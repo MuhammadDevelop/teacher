@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
+import AdminPanel from './pages/AdminPanel'
+import StudentPanel from './pages/StudentPanel'
 import './App.css'
 
 function App() {
@@ -12,10 +14,9 @@ function App() {
   useEffect(() => {
     const hash = window.location.hash.slice(1) || 'login'
     setPage(hash)
-
-    const onHashChange = () => setPage(window.location.hash.slice(1) || 'login')
-    window.addEventListener('hashchange', onHashChange)
-    return () => window.removeEventListener('hashchange', onHashChange)
+    const onHash = () => setPage(window.location.hash.slice(1) || 'login')
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
   useEffect(() => {
@@ -25,12 +26,12 @@ function App() {
     }
   }, [token])
 
-  const handleLogin = (tokenData, userData) => {
-    localStorage.setItem('token', tokenData)
-    localStorage.setItem('user', JSON.stringify(userData))
-    setToken(tokenData)
-    setUser(userData)
-    window.location.hash = 'dashboard'
+  const handleLogin = (t, u) => {
+    localStorage.setItem('token', t)
+    localStorage.setItem('user', JSON.stringify(u))
+    setToken(t)
+    setUser(u)
+    window.location.hash = u.role === 'admin' ? 'admin' : 'student'
   }
 
   const handleLogout = () => {
@@ -42,14 +43,17 @@ function App() {
   }
 
   if (token && user) {
-    return <DashboardPage user={user} onLogout={handleLogout} />
+    if (user.role === 'admin') {
+      return <AdminPanel user={user} onLogout={handleLogout} />
+    }
+    return <StudentPanel user={user} onLogout={handleLogout} />
   }
 
   if (page === 'register') {
-    return <RegisterPage onNavigate={() => (window.location.hash = 'login')} />
+    return <RegisterPage onNavigate={() => window.location.hash = 'login'} />
   }
 
-  return <LoginPage onLogin={handleLogin} onNavigate={() => (window.location.hash = 'register')} />
+  return <LoginPage onLogin={handleLogin} onNavigate={() => window.location.hash = 'register'} />
 }
 
 export default App
