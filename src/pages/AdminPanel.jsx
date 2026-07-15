@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  adminDashboard, adminStudents, adminTests, adminCreateTest, adminUpdateTest, adminDeleteTest,
+  adminDashboard, adminStudents, adminDeleteStudent, adminTests, adminCreateTest, adminUpdateTest, adminDeleteTest,
   adminHomework, adminCreateHomework, adminDeleteHomework,
   adminExercises, adminCreateExercise, adminDeleteExercise,
   adminTransferCourse, adminDailyGrades, adminRating, adminSubmissions, adminGradeSubmission
@@ -8,11 +8,13 @@ import {
 import ThemeToggle from '../components/ThemeToggle'
 
 const DIRECTIONS = ['Dasturlash', 'Microsoft dasturlari']
+const SOHA_MAP = { 'Dasturlash': ['Frontend', 'Backend'], 'Microsoft dasturlari': [] }
 const TECH_MAP = {
   'Frontend': ['HTML/CSS', 'JavaScript', 'React', 'Next.js', 'TypeScript'],
   'Backend': ['Python', 'Node.js', 'FastAPI'],
   'Microsoft': ['Word', 'Excel', 'Canva'],
 }
+const ALL_TECHS = [...TECH_MAP.Frontend, ...TECH_MAP.Backend, ...TECH_MAP.Microsoft]
 
 function AdminPanel({ user, onLogout }) {
   const [tab, setTab] = useState('dashboard')
@@ -26,11 +28,16 @@ function AdminPanel({ user, onLogout }) {
   const [filterTech, setFilterTech] = useState('')
   const [form, setForm] = useState({})
 
-  const msg = (s, e) => { setSuccess(s || ''); setError(e || ''); if (s) setTimeout(() => setSuccess(''), 3000) }
+  // Transfer modal
+  const [transferModal, setTransferModal] = useState(null)
+  const [trDir, setTrDir] = useState('')
+  const [trSoha, setTrSoha] = useState('')
+  const [trTech, setTrTech] = useState('')
 
+  const msg = (s, e) => { setSuccess(s||''); setError(e||''); if(s) setTimeout(()=>setSuccess(''),3000) }
   useEffect(() => { loadTab() }, [tab, filterDir, filterTech])
 
-  const buildParams = () => {
+  const bp = () => {
     const p = new URLSearchParams()
     if (filterDir) p.set('direction', filterDir)
     if (filterTech) p.set('technology', filterTech)
@@ -40,81 +47,137 @@ function AdminPanel({ user, onLogout }) {
   const loadTab = async () => {
     setLoading(true); setError('')
     try {
-      if (tab === 'dashboard') { setStats(await adminDashboard()) }
-      else if (tab === 'tests') { const r = await adminTests(buildParams()); setData(r.tests || []) }
-      else if (tab === 'homework') { const r = await adminHomework(buildParams()); setData(r.tasks || []) }
-      else if (tab === 'exercises') { const r = await adminExercises(buildParams()); setData(r.exercises || []) }
-      else if (tab === 'students') { const r = await adminStudents(buildParams()); setData(r.students || []) }
-      else if (tab === 'grades') { const r = await adminDailyGrades(buildParams()); setData(r.grades || []) }
-      else if (tab === 'rating') { const r = await adminRating(buildParams()); setData(r.rating || []) }
-      else if (tab === 'submissions') { const r = await adminSubmissions(buildParams()); setData(r.submissions || []) }
-    } catch (e) { setError(e.message) }
+      if (tab === 'dashboard') setStats(await adminDashboard())
+      else if (tab === 'tests') { const r = await adminTests(bp()); setData(r.tests||[]) }
+      else if (tab === 'homework') { const r = await adminHomework(bp()); setData(r.tasks||[]) }
+      else if (tab === 'exercises') { const r = await adminExercises(bp()); setData(r.exercises||[]) }
+      else if (tab === 'students') { const r = await adminStudents(bp()); setData(r.students||[]) }
+      else if (tab === 'grades') { const r = await adminDailyGrades(bp()); setData(r.grades||[]) }
+      else if (tab === 'rating') { const r = await adminRating(bp()); setData(r.rating||[]) }
+      else if (tab === 'submissions') { const r = await adminSubmissions(bp()); setData(r.submissions||[]) }
+    } catch(e) { setError(e.message) }
     finally { setLoading(false) }
   }
 
   const handleCreate = async () => {
     setLoading(true)
     try {
-      if (tab === 'tests') await adminCreateTest(form)
-      else if (tab === 'homework') await adminCreateHomework(form)
-      else if (tab === 'exercises') await adminCreateExercise(form)
+      const payload = { ...form }
+      if (!payload.course) payload.course = payload.direction || ''
+      if (tab==='tests') await adminCreateTest(payload)
+      else if (tab==='homework') await adminCreateHomework(payload)
+      else if (tab==='exercises') await adminCreateExercise(payload)
       msg('Yaratildi ✅'); setShowForm(false); setForm({}); loadTab()
-    } catch (e) { msg('', e.message) }
+    } catch(e) { msg('',e.message) }
     finally { setLoading(false) }
   }
 
   const handleDelete = async (id) => {
     if (!confirm("O'chirilsinmi?")) return
     try {
-      if (tab === 'tests') await adminDeleteTest(id)
-      else if (tab === 'homework') await adminDeleteHomework(id)
-      else if (tab === 'exercises') await adminDeleteExercise(id)
+      if (tab==='tests') await adminDeleteTest(id)
+      else if (tab==='homework') await adminDeleteHomework(id)
+      else if (tab==='exercises') await adminDeleteExercise(id)
       msg("O'chirildi ✅"); loadTab()
-    } catch (e) { msg('', e.message) }
+    } catch(e) { msg('',e.message) }
   }
 
-  const handleTransfer = async (userId) => {
-    const dir = prompt("Yangi yo'nalish (Dasturlash / Microsoft dasturlari):")
-    if (!dir) return
-    const tech = prompt("Yangi texnologiya:")
-    if (!tech) return
-    const soha = dir === 'Dasturlash' ? prompt("Soha (Frontend / Backend):") : null
+  const handleDeleteStudent = async (id, name) => {
+    if (!confirm(`"${name}" ni o'chirmoqchimisiz? Bu qaytarilmas!`)) return
     try {
-      await adminTransferCourse({ user_id: userId, new_direction: dir, new_soha: soha, new_technology: tech })
-      msg("O'tkazildi ✅"); loadTab()
-    } catch (e) { msg('', e.message) }
+      await adminDeleteStudent(id)
+      msg(`${name} o'chirildi ✅`); loadTab()
+    } catch(e) { msg('',e.message) }
+  }
+
+  const openTransfer = (student) => {
+    setTransferModal(student)
+    setTrDir(student.course_direction || '')
+    setTrSoha(student.subject || '')
+    setTrTech(student.technology || '')
+  }
+
+  const doTransfer = async () => {
+    if (!trDir || !trTech) { msg('', "Yo'nalish va texnologiya tanlang!"); return }
+    try {
+      await adminTransferCourse({ user_id: transferModal.id, new_direction: trDir, new_soha: trSoha || null, new_technology: trTech })
+      msg("O'tkazildi ✅"); setTransferModal(null); loadTab()
+    } catch(e) { msg('',e.message) }
   }
 
   const handleGrade = async (hwId) => {
     const score = prompt("Ball (0-2):")
-    if (score === null) return
+    if (score===null) return
     const comment = prompt("Izoh:") || ''
     try {
       await adminGradeSubmission(hwId, { score: parseInt(score), comment })
       msg("Baholandi ✅"); loadTab()
-    } catch (e) { msg('', e.message) }
+    } catch(e) { msg('',e.message) }
+  }
+
+  const getTechOpts = (dir, soha) => {
+    if (dir === 'Microsoft dasturlari') return TECH_MAP.Microsoft
+    if (dir === 'Dasturlash' && soha) return TECH_MAP[soha] || []
+    return []
   }
 
   const tabs = [
-    { id: 'dashboard', label: '📊 Dashboard' },
-    { id: 'tests', label: '📝 Testlar' },
-    { id: 'homework', label: '📋 Vazifalar' },
-    { id: 'exercises', label: '💪 Mashqlar' },
-    { id: 'submissions', label: '📥 Topshirilganlar' },
-    { id: 'students', label: '👨‍🎓 Studentlar' },
-    { id: 'grades', label: '📈 Baholar' },
-    { id: 'rating', label: '🏆 Reyting' },
+    { id:'dashboard', icon:'📊', label:'Dashboard' },
+    { id:'tests', icon:'📝', label:'Testlar' },
+    { id:'homework', icon:'📋', label:'Vazifalar' },
+    { id:'exercises', icon:'💪', label:'Mashqlar' },
+    { id:'submissions', icon:'📥', label:'Topshirilganlar' },
+    { id:'students', icon:'👨‍🎓', label:'Studentlar' },
+    { id:'grades', icon:'📈', label:'Baholar' },
+    { id:'rating', icon:'🏆', label:'Reyting' },
   ]
-
-  const getTechOptions = () => {
-    if (form.direction === 'Microsoft dasturlari') return TECH_MAP['Microsoft']
-    if (form.direction === 'Dasturlash' && form.soha) return TECH_MAP[form.soha] || []
-    return []
-  }
 
   return (
     <div className="panel-wrapper">
       <div className="floating-orbs"><div className="orb orb-1"/><div className="orb orb-2"/><div className="orb orb-3"/></div>
+
+      {/* Transfer Modal */}
+      {transferModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,animation:'fadeIn 0.2s ease'}}>
+          <div className="glass-card" style={{width:'420px',maxWidth:'90vw',animation:'slideUp 0.3s ease'}}>
+            <h3 style={{color:'var(--text-primary)',marginBottom:'4px'}}>🔄 Kurs o'tkazish</h3>
+            <p style={{color:'var(--text-muted)',fontSize:'13px',marginBottom:'20px'}}>{transferModal.fullname}</p>
+
+            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+              <div>
+                <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Yo'nalish</label>
+                <select value={trDir} onChange={e => { setTrDir(e.target.value); setTrSoha(''); setTrTech('') }} className="form-input">
+                  <option value="">Tanlang...</option>
+                  {DIRECTIONS.map(d => <option key={d}>{d}</option>)}
+                </select>
+              </div>
+
+              {trDir === 'Dasturlash' && (
+                <div>
+                  <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Soha</label>
+                  <select value={trSoha} onChange={e => { setTrSoha(e.target.value); setTrTech('') }} className="form-input">
+                    <option value="">Tanlang...</option>
+                    {(SOHA_MAP['Dasturlash']||[]).map(s => <option key={s}>{s}</option>)}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Texnologiya</label>
+                <select value={trTech} onChange={e => setTrTech(e.target.value)} className="form-input">
+                  <option value="">Tanlang...</option>
+                  {getTechOpts(trDir, trSoha).map(t => <option key={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div style={{display:'flex',gap:'10px',marginTop:'20px'}}>
+              <button onClick={doTransfer} className="gradient-btn" style={{flex:1}}>✅ O'tkazish</button>
+              <button onClick={() => setTransferModal(null)} className="form-input" style={{cursor:'pointer',textAlign:'center',flex:'0 0 auto',padding:'12px 20px'}}>Bekor</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <header className="panel-header">
         <div className="panel-header-left">
@@ -131,131 +194,251 @@ function AdminPanel({ user, onLogout }) {
         <nav className="panel-sidebar">
           {tabs.map(t => (
             <button key={t.id} onClick={() => { setTab(t.id); setShowForm(false) }}
-              className={`panel-nav-btn ${tab === t.id ? 'active' : ''}`}>
-              {t.label}
+              className={`panel-nav-btn ${tab===t.id?'active':''}`}>
+              {t.icon} {t.label}
             </button>
           ))}
         </nav>
 
         <main className="panel-content">
-          {error && <div className="alert alert-error">⚠️ {error}</div>}
-          {success && <div className="alert alert-success">✅ {success}</div>}
+          {error && <div className="alert alert-error" style={{marginBottom:'16px'}}>⚠️ {error}</div>}
+          {success && <div className="alert alert-success" style={{marginBottom:'16px'}}>✅ {success}</div>}
 
-          {/* Filters */}
-          {['tests','homework','exercises','students','grades','rating','submissions'].includes(tab) && (
+          {/* ═══ Filters ═══ */}
+          {tab !== 'dashboard' && (
             <div className="filter-row">
               <select value={filterDir} onChange={e => { setFilterDir(e.target.value); setFilterTech('') }} className="filter-select">
-                <option value="">Barcha yo'nalishlar</option>
+                <option value="">🎯 Barcha yo'nalishlar</option>
                 {DIRECTIONS.map(d => <option key={d}>{d}</option>)}
               </select>
               <select value={filterTech} onChange={e => setFilterTech(e.target.value)} className="filter-select">
-                <option value="">Barcha texnologiyalar</option>
-                {[...TECH_MAP.Frontend, ...TECH_MAP.Backend, ...TECH_MAP.Microsoft].map(t => <option key={t}>{t}</option>)}
+                <option value="">💻 Barcha texnologiyalar</option>
+                {ALL_TECHS.map(t => <option key={t}>{t}</option>)}
               </select>
               {['tests','homework','exercises'].includes(tab) && (
-                <button onClick={() => { setShowForm(!showForm); setForm({ direction: filterDir, technology: filterTech }) }} className="add-btn">
-                  ➕ Qo'shish
+                <button onClick={() => { setShowForm(!showForm); setForm({direction:filterDir, technology:filterTech}) }} className="add-btn">
+                  {showForm ? '✕ Yopish' : '➕ Qo\'shish'}
                 </button>
               )}
             </div>
           )}
 
-          {/* Dashboard */}
+          {/* ═══ Dashboard ═══ */}
           {tab === 'dashboard' && stats && (
-            <div className="stats-grid" style={{animation:'fadeIn 0.4s ease'}}>
-              {[
-                { l: 'Jami Studentlar', v: stats.total_students, i: '👨‍🎓' },
-                { l: 'Faol', v: stats.active_students, i: '✅' },
-                { l: 'Testlar', v: stats.total_tests, i: '📝' },
-                { l: 'Vazifalar', v: stats.total_homework, i: '📋' },
-                { l: 'Mashqlar', v: stats.total_exercises, i: '💪' },
-                { l: 'Bugungi davomat', v: stats.today_attendance, i: '📅' },
-              ].map((s, i) => (
-                <div key={i} className="stat-card">
-                  <div className="stat-icon">{s.i}</div>
-                  <div className="stat-label">{s.l}</div>
-                  <div className="stat-value">{s.v}</div>
-                </div>
-              ))}
+            <div style={{animation:'fadeIn 0.4s ease'}}>
+              <div className="welcome-card" style={{marginBottom:'24px'}}>
+                <h1>Admin Dashboard 📊</h1>
+                <p>O'quv markazi boshqaruv paneli</p>
+              </div>
+              <div className="stats-grid">
+                {[
+                  {l:'Jami studentlar', v:stats.total_students, i:'👨‍🎓', c:'var(--accent-cyan)'},
+                  {l:'Faol', v:stats.active_students, i:'✅', c:'var(--success)'},
+                  {l:'Testlar', v:stats.total_tests, i:'📝', c:'var(--accent-cyan)'},
+                  {l:'Vazifalar', v:stats.total_homework, i:'📋', c:'#f59e0b'},
+                  {l:'Mashqlar', v:stats.total_exercises, i:'💪', c:'#a855f7'},
+                  {l:'Bugungi davomat', v:stats.today_attendance, i:'📅', c:'var(--success)'},
+                ].map((s,i) => (
+                  <div key={i} className="stat-card">
+                    <div className="stat-icon">{s.i}</div>
+                    <div className="stat-label">{s.l}</div>
+                    <div className="stat-value" style={{color:s.c}}>{s.v}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Create Form */}
+          {/* ═══ Create Form ═══ */}
           {showForm && ['tests','homework','exercises'].includes(tab) && (
-            <div className="glass-card" style={{marginBottom:'20px',animation:'slideUp 0.3s ease'}}>
-              <h3 style={{color:'var(--text-primary)',marginBottom:'16px'}}>
-                {tab === 'tests' ? '📝 Yangi test' : tab === 'homework' ? '📋 Yangi vazifa' : '💪 Yangi mashq'}
+            <div className="glass-card" style={{marginBottom:'24px',animation:'slideUp 0.3s ease',borderLeft:'3px solid var(--accent-cyan)'}}>
+              <h3 style={{color:'var(--text-primary)',marginBottom:'16px',fontSize:'16px'}}>
+                {tab==='tests' ? '📝 Yangi test qo\'shish' : tab==='homework' ? '📋 Yangi vazifa qo\'shish' : '💪 Yangi mashq qo\'shish'}
               </h3>
               <div className="form-grid">
-                {tab === 'tests' && <>
-                  <input placeholder="Savol" value={form.question || ''} onChange={e => setForm({...form, question: e.target.value})} className="form-input" />
-                  <input placeholder="A variant" value={form.option_a || ''} onChange={e => setForm({...form, option_a: e.target.value})} className="form-input" />
-                  <input placeholder="B variant" value={form.option_b || ''} onChange={e => setForm({...form, option_b: e.target.value})} className="form-input" />
-                  <input placeholder="C variant" value={form.option_c || ''} onChange={e => setForm({...form, option_c: e.target.value})} className="form-input" />
-                  <input placeholder="D variant" value={form.option_d || ''} onChange={e => setForm({...form, option_d: e.target.value})} className="form-input" />
-                  <select value={form.correct_option || ''} onChange={e => setForm({...form, correct_option: e.target.value})} className="form-input">
-                    <option value="">To'g'ri javob</option>
-                    <option>A</option><option>B</option><option>C</option><option>D</option>
+                {/* Yo'nalish */}
+                <div>
+                  <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Yo'nalish *</label>
+                  <select value={form.direction||''} onChange={e => setForm({...form, direction:e.target.value, soha:'', technology:''})} className="form-input">
+                    <option value="">Tanlang...</option>
+                    {DIRECTIONS.map(d => <option key={d}>{d}</option>)}
                   </select>
-                </>}
-                {(tab === 'homework' || tab === 'exercises') && <>
-                  <input placeholder="Sarlavha" value={form.title || ''} onChange={e => setForm({...form, title: e.target.value})} className="form-input" />
-                  <textarea placeholder="Tavsif" value={form.description || ''} onChange={e => setForm({...form, description: e.target.value})} className="form-input" style={{minHeight:'80px'}} />
-                </>}
-                <select value={form.direction || ''} onChange={e => setForm({...form, direction: e.target.value, technology: '', soha: ''})} className="form-input">
-                  <option value="">Yo'nalish</option>
-                  {DIRECTIONS.map(d => <option key={d}>{d}</option>)}
-                </select>
+                </div>
+
+                {/* Soha */}
                 {form.direction === 'Dasturlash' && (
-                  <select value={form.soha || ''} onChange={e => setForm({...form, soha: e.target.value, technology: ''})} className="form-input">
-                    <option value="">Soha</option>
-                    <option>Frontend</option><option>Backend</option>
-                  </select>
+                  <div>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Soha *</label>
+                    <select value={form.soha||''} onChange={e => setForm({...form, soha:e.target.value, technology:''})} className="form-input">
+                      <option value="">Tanlang...</option>
+                      {(SOHA_MAP['Dasturlash']||[]).map(s => <option key={s}>{s}</option>)}
+                    </select>
+                  </div>
                 )}
-                <select value={form.technology || ''} onChange={e => setForm({...form, technology: e.target.value})} className="form-input">
-                  <option value="">Texnologiya</option>
-                  {getTechOptions().map(t => <option key={t}>{t}</option>)}
-                </select>
-                <input type="number" placeholder="Dars raqami" value={form.lesson_number || ''} onChange={e => setForm({...form, lesson_number: parseInt(e.target.value) || 1})} className="form-input" min="1" />
+
+                {/* Texnologiya */}
+                <div>
+                  <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Texnologiya *</label>
+                  <select value={form.technology||''} onChange={e => setForm({...form, technology:e.target.value})} className="form-input">
+                    <option value="">Tanlang...</option>
+                    {getTechOpts(form.direction, form.soha).map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+
+                {/* Dars raqami */}
+                <div>
+                  <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Dars raqami</label>
+                  <input type="number" min="1" placeholder="1" value={form.lesson_number||''} onChange={e => setForm({...form, lesson_number:parseInt(e.target.value)||1})} className="form-input" />
+                </div>
+
+                {/* Test fields */}
+                {tab === 'tests' && <>
+                  <div style={{gridColumn:'1/-1'}}>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Savol *</label>
+                    <input placeholder="Test savolini yozing..." value={form.question||''} onChange={e => setForm({...form, question:e.target.value})} className="form-input" />
+                  </div>
+                  <div>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>A variant *</label>
+                    <input placeholder="A)" value={form.option_a||''} onChange={e => setForm({...form, option_a:e.target.value})} className="form-input" />
+                  </div>
+                  <div>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>B variant *</label>
+                    <input placeholder="B)" value={form.option_b||''} onChange={e => setForm({...form, option_b:e.target.value})} className="form-input" />
+                  </div>
+                  <div>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>C variant</label>
+                    <input placeholder="C)" value={form.option_c||''} onChange={e => setForm({...form, option_c:e.target.value})} className="form-input" />
+                  </div>
+                  <div>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>D variant</label>
+                    <input placeholder="D)" value={form.option_d||''} onChange={e => setForm({...form, option_d:e.target.value})} className="form-input" />
+                  </div>
+                  <div>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>To'g'ri javob *</label>
+                    <select value={form.correct_option||''} onChange={e => setForm({...form, correct_option:e.target.value})} className="form-input">
+                      <option value="">Tanlang</option>
+                      <option>A</option><option>B</option><option>C</option><option>D</option>
+                    </select>
+                  </div>
+                </>}
+
+                {/* Homework/Exercise fields */}
+                {(tab==='homework' || tab==='exercises') && <>
+                  <div style={{gridColumn:'1/-1'}}>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Sarlavha *</label>
+                    <input placeholder="Vazifa/mashq sarlavhasi..." value={form.title||''} onChange={e => setForm({...form, title:e.target.value})} className="form-input" />
+                  </div>
+                  <div style={{gridColumn:'1/-1'}}>
+                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Tavsif</label>
+                    <textarea placeholder="Batafsil tavsif..." value={form.description||''} onChange={e => setForm({...form, description:e.target.value})} className="form-input" style={{minHeight:'80px',resize:'vertical'}} />
+                  </div>
+                </>}
               </div>
-              <div style={{display:'flex',gap:'8px',marginTop:'16px'}}>
-                <button onClick={handleCreate} disabled={loading} className="gradient-btn" style={{flex:1}}>{loading ? '⏳...' : '✅ Saqlash'}</button>
-                <button onClick={() => setShowForm(false)} className="form-input" style={{cursor:'pointer',textAlign:'center',flex:'0 0 auto',padding:'12px 20px'}}>Bekor</button>
+
+              <div style={{display:'flex',gap:'10px',marginTop:'20px'}}>
+                <button onClick={handleCreate} disabled={loading} className="gradient-btn" style={{flex:1}}>
+                  {loading ? '⏳ Saqlanmoqda...' : '✅ Saqlash'}
+                </button>
+                <button onClick={() => { setShowForm(false); setForm({}) }} className="logout-btn" style={{borderColor:'var(--glass-border)',color:'var(--text-muted)'}}>Bekor</button>
               </div>
             </div>
           )}
 
-          {/* Data Table */}
-          {['tests','homework','exercises','students','grades','rating','submissions'].includes(tab) && (
-            <div style={{overflowX:'auto'}}>
+          {/* ═══ Data Tables ═══ */}
+          {tab !== 'dashboard' && (
+            <div style={{animation:'fadeIn 0.3s ease'}}>
               {loading ? <p className="loading-state">⏳ Yuklanmoqda...</p> :
-              data.length === 0 ? <p className="empty-state">Ma'lumot yo'q</p> : (
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      {tab === 'tests' && <><th>#</th><th>Savol</th><th>Texnologiya</th><th>Dars</th><th>Javob</th><th>Amallar</th></>}
-                      {tab === 'homework' && <><th>#</th><th>Sarlavha</th><th>Texnologiya</th><th>Dars</th><th>Amallar</th></>}
-                      {tab === 'exercises' && <><th>#</th><th>Sarlavha</th><th>Texnologiya</th><th>Dars</th><th>Amallar</th></>}
-                      {tab === 'students' && <><th>#</th><th>Ism</th><th>Telefon</th><th>Yo'nalish</th><th>Texnologiya</th><th>Status</th><th>Amallar</th></>}
-                      {tab === 'grades' && <><th>#</th><th>Ism</th><th>Davomat</th><th>Test</th><th>Vazifa</th><th>Jami</th></>}
-                      {tab === 'rating' && <><th>🏆</th><th>Ism</th><th>Test</th><th>Vazifa</th><th>Davomat</th><th>Jami</th></>}
-                      {tab === 'submissions' && <><th>#</th><th>Student</th><th>Vazifa</th><th>Link</th><th>Ball</th><th>Baholash</th></>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.map((r, i) => (
-                      <tr key={r.id || i}>
-                        {tab === 'tests' && <><td>{i+1}</td><td>{r.question?.slice(0,50)}</td><td>{r.technology}</td><td>{r.lesson_number}</td><td>{r.correct_option}</td><td><button onClick={() => handleDelete(r.id)} className="delete-btn">🗑</button></td></>}
-                        {tab === 'homework' && <><td>{i+1}</td><td>{r.title}</td><td>{r.technology}</td><td>{r.lesson_number}</td><td><button onClick={() => handleDelete(r.id)} className="delete-btn">🗑</button></td></>}
-                        {tab === 'exercises' && <><td>{i+1}</td><td>{r.title}</td><td>{r.technology}</td><td>{r.lesson_number}</td><td><button onClick={() => handleDelete(r.id)} className="delete-btn">🗑</button></td></>}
-                        {tab === 'students' && <><td>{i+1}</td><td>{r.fullname}</td><td>{r.telegram_number}</td><td>{r.course_direction}</td><td>{r.technology}</td><td><span className={`badge ${r.status==='active'?'badge-success':'badge-error'}`}>{r.status}</span></td><td><button onClick={() => handleTransfer(r.id)} className="action-btn">🔄</button></td></>}
-                        {tab === 'grades' && <><td>{i+1}</td><td>{r.fullname}</td><td><span className={`badge ${r.attendance==='keldi'?'badge-success':'badge-error'}`}>{r.attendance}</span></td><td>{r.test_score}</td><td>{r.hw_score}</td><td style={{fontWeight:700,color:'var(--accent-cyan)'}}>{r.total_score}</td></>}
-                        {tab === 'rating' && <><td style={{fontWeight:700,color:i<3?'gold':'var(--text-muted)'}}>{i+1}</td><td>{r.fullname}</td><td>{r.test_balls}</td><td>{r.hw_balls}</td><td>{r.attendance_days}</td><td style={{fontWeight:700,color:'var(--accent-cyan)'}}>{r.total}</td></>}
-                        {tab === 'submissions' && <><td>{i+1}</td><td>{r.fullname}</td><td>{r.title || '-'}</td><td>{r.homework_link ? <a href={r.homework_link} target="_blank" style={{color:'var(--accent-cyan)'}}>Link</a> : r.file_data ? '📎 Fayl' : '-'}</td><td>{r.score ?? '-'}</td><td>{r.score===null ? <button onClick={() => handleGrade(r.id)} className="action-btn">⭐ Baholash</button> : '✅'}</td></>}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              data.length === 0 ? <p className="empty-state">📭 Ma'lumot topilmadi</p> : (
+
+                <div className="glass-card" style={{padding:'0',overflow:'hidden'}}>
+                  <div style={{overflowX:'auto'}}>
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          {tab==='tests' && <><th>#</th><th>Savol</th><th>A</th><th>B</th><th>C</th><th>D</th><th>✅</th><th>Texnologiya</th><th>Dars</th><th></th></>}
+                          {tab==='homework' && <><th>#</th><th>Sarlavha</th><th>Tavsif</th><th>Texnologiya</th><th>Dars</th><th></th></>}
+                          {tab==='exercises' && <><th>#</th><th>Sarlavha</th><th>Tavsif</th><th>Texnologiya</th><th>Dars</th><th></th></>}
+                          {tab==='students' && <><th>#</th><th>Ism</th><th>Telefon</th><th>Yo'nalish</th><th>Texnologiya</th><th>Status</th><th>Amallar</th></>}
+                          {tab==='grades' && <><th>#</th><th>Ism</th><th>Davomat</th><th>Test</th><th>Vazifa</th><th>Jami</th></>}
+                          {tab==='rating' && <><th>🏆</th><th>Ism</th><th>Test</th><th>Vazifa</th><th>Davomat</th><th>Jami</th></>}
+                          {tab==='submissions' && <><th>#</th><th>Student</th><th>Vazifa</th><th>Link</th><th>Ball</th><th></th></>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {data.map((r,i) => (
+                          <tr key={r.id||i}>
+                            {tab==='tests' && <>
+                              <td style={{color:'var(--text-muted)'}}>{i+1}</td>
+                              <td style={{maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.question}</td>
+                              <td>{r.option_a}</td><td>{r.option_b}</td><td>{r.option_c}</td><td>{r.option_d}</td>
+                              <td><span className="badge badge-success">{r.correct_option}</span></td>
+                              <td><span className="badge badge-info">{r.technology}</span></td>
+                              <td>{r.lesson_number}</td>
+                              <td><button onClick={()=>handleDelete(r.id)} className="delete-btn" title="O'chirish">🗑</button></td>
+                            </>}
+                            {tab==='homework' && <>
+                              <td style={{color:'var(--text-muted)'}}>{i+1}</td>
+                              <td style={{fontWeight:500}}>{r.title}</td>
+                              <td style={{maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text-muted)'}}>{r.description||'—'}</td>
+                              <td><span className="badge badge-info">{r.technology}</span></td>
+                              <td>{r.lesson_number}</td>
+                              <td><button onClick={()=>handleDelete(r.id)} className="delete-btn" title="O'chirish">🗑</button></td>
+                            </>}
+                            {tab==='exercises' && <>
+                              <td style={{color:'var(--text-muted)'}}>{i+1}</td>
+                              <td style={{fontWeight:500}}>{r.title}</td>
+                              <td style={{maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--text-muted)'}}>{r.description||'—'}</td>
+                              <td><span className="badge badge-info">{r.technology}</span></td>
+                              <td>{r.lesson_number}</td>
+                              <td><button onClick={()=>handleDelete(r.id)} className="delete-btn" title="O'chirish">🗑</button></td>
+                            </>}
+                            {tab==='students' && <>
+                              <td style={{color:'var(--text-muted)'}}>{i+1}</td>
+                              <td style={{fontWeight:600}}>{r.fullname}</td>
+                              <td style={{color:'var(--text-muted)',fontSize:'12px'}}>{r.telegram_number}</td>
+                              <td>{r.course_direction}</td>
+                              <td><span className="badge badge-info">{r.technology}</span></td>
+                              <td><span className={`badge ${r.status==='active'?'badge-success':'badge-error'}`}>{r.status==='active'?'Faol':'Nofaol'}</span></td>
+                              <td>
+                                <div style={{display:'flex',gap:'6px'}}>
+                                  <button onClick={()=>openTransfer(r)} className="action-btn" title="Kurs o'tkazish">🔄</button>
+                                  <button onClick={()=>handleDeleteStudent(r.id,r.fullname)} className="delete-btn" title="O'chirish" style={{color:'var(--error)'}}>🗑</button>
+                                </div>
+                              </td>
+                            </>}
+                            {tab==='grades' && <>
+                              <td style={{color:'var(--text-muted)'}}>{i+1}</td>
+                              <td style={{fontWeight:500}}>{r.fullname}</td>
+                              <td><span className={`badge ${r.attendance==='keldi'?'badge-success':'badge-error'}`}>{r.attendance==='keldi'?'✅ Keldi':'❌ Kelmadi'}</span></td>
+                              <td>{r.test_score}</td>
+                              <td>{r.hw_score}</td>
+                              <td style={{fontWeight:700,color:'var(--accent-cyan)',fontSize:'16px'}}>{r.total_score}</td>
+                            </>}
+                            {tab==='rating' && <>
+                              <td style={{fontWeight:700,fontSize:'16px',color:i<3?'gold':'var(--text-muted)'}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</td>
+                              <td style={{fontWeight:600}}>{r.fullname}</td>
+                              <td>{r.test_balls}</td>
+                              <td>{r.hw_balls}</td>
+                              <td>{r.attendance_days}</td>
+                              <td style={{fontWeight:700,color:'var(--accent-cyan)',fontSize:'16px'}}>{r.total}</td>
+                            </>}
+                            {tab==='submissions' && <>
+                              <td style={{color:'var(--text-muted)'}}>{i+1}</td>
+                              <td style={{fontWeight:500}}>{r.fullname}</td>
+                              <td>{r.title||'—'}</td>
+                              <td>{r.homework_link ? <a href={r.homework_link} target="_blank" rel="noopener" style={{color:'var(--accent-cyan)',textDecoration:'none'}}>🔗 Ko'rish</a> : r.file_data ? '📎 Fayl' : '—'}</td>
+                              <td>{r.score!==null && r.score!==undefined ? <span className="badge badge-success">{r.score} ball</span> : <span className="badge badge-error">—</span>}</td>
+                              <td>{(r.score===null||r.score===undefined) ? <button onClick={()=>handleGrade(r.id)} className="action-btn">⭐ Baholash</button> : <span style={{color:'var(--success)'}}>✅</span>}</td>
+                            </>}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div style={{padding:'12px 16px',borderTop:'1px solid var(--glass-border)',color:'var(--text-muted)',fontSize:'12px'}}>
+                    Jami: {data.length} ta
+                  </div>
+                </div>
               )}
             </div>
           )}

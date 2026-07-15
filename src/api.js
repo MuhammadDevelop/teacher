@@ -20,6 +20,7 @@ export const getMe = () => request(`${API}/me`);
 // ── Admin ──
 export const adminDashboard = () => request(`${API}/admin/dashboard`);
 export const adminStudents = (params = '') => request(`${API}/admin/students?${params}`);
+export const adminDeleteStudent = (id) => request(`${API}/admin/students/${id}`, { method: 'DELETE' });
 export const adminCheckDuplicates = () => request(`${API}/admin/check-duplicates`);
 export const adminTests = (params = '') => request(`${API}/admin/tests?${params}`);
 export const adminCreateTest = (d) => request(`${API}/admin/tests`, { method: 'POST', body: JSON.stringify(d) });
