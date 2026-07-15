@@ -40,7 +40,9 @@ export const adminDailyGrades = (params = '') => request(`${API}/admin/daily-gra
 export const adminRating = (params = '') => request(`${API}/admin/rating?${params}`);
 
 // ── Student ──
-export const studentAttendance = () => request(`${API}/student/attendance`, { method: 'POST' });
+export const studentProfile = () => request(`${API}/student/profile`);
+export const studentSetAttPassword = (d) => request(`${API}/student/profile/attendance-password`, { method: 'POST', body: JSON.stringify(d) });
+export const studentAttendance = (password) => request(`${API}/student/attendance`, { method: 'POST', body: JSON.stringify({ password }) });
 export const studentMyAttendance = () => request(`${API}/student/attendance`);
 export const studentTests = () => request(`${API}/student/tests`);
 export const studentStartTest = (lesson) => request(`${API}/student/tests/start`, { method: 'POST', body: JSON.stringify({ lesson_number: lesson }) });

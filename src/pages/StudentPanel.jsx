@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import {
-  studentAttendance, studentMyAttendance, studentTests, studentStartTest, studentSubmitTest,
+  studentProfile, studentSetAttPassword, studentAttendance, studentMyAttendance,
+  studentTests, studentStartTest, studentSubmitTest,
   studentHomework, studentSubmitHomework, studentUploadHomework, studentEditHomework,
   studentExercises, studentNotifications, studentMarkRead, studentRating, studentMyGrades
 } from '../api'
@@ -13,10 +14,18 @@ function StudentPanel({ user, onLogout }) {
   const [success, setSuccess] = useState('')
   const [data, setData] = useState(null)
 
+  // Davomat
+  const [attPassword, setAttPassword] = useState('')
+  const [attDone, setAttDone] = useState(false)
+
+  // Profil parol
+  const [newPwd, setNewPwd] = useState('')
+  const [confirmPwd, setConfirmPwd] = useState('')
+  const [hasAttPwd, setHasAttPwd] = useState(false)
+
   // Test state
   const [testQuestions, setTestQuestions] = useState(null)
   const [testAnswers, setTestAnswers] = useState({})
-  const [testStarted, setTestStarted] = useState(null)
   const [testTimer, setTestTimer] = useState(600)
   const [testResult, setTestResult] = useState(null)
   const timerRef = useRef(null)
@@ -27,7 +36,7 @@ function StudentPanel({ user, onLogout }) {
 
   const msg = (s, e) => { setSuccess(s || ''); setError(e || ''); if (s) setTimeout(() => setSuccess(''), 3000) }
 
-  useEffect(() => { markAttendance(); loadNotifCount() }, [])
+  useEffect(() => { loadNotifCount(); checkAttStatus() }, [])
   useEffect(() => { loadTab() }, [tab])
 
   useEffect(() => {
@@ -45,8 +54,20 @@ function StudentPanel({ user, onLogout }) {
     }
   }, [testQuestions])
 
-  const markAttendance = async () => { try { await studentAttendance() } catch {} }
   const loadNotifCount = async () => { try { const r = await studentNotifications(); setUnread(r.unread_count || 0) } catch {} }
+
+  const checkAttStatus = async () => {
+    try {
+      const att = await studentMyAttendance()
+      const today = new Date().toISOString().split('T')[0]
+      const todayAtt = (att.attendance || []).find(a => a.date && a.date.startsWith(today))
+      if (todayAtt) setAttDone(true)
+    } catch {}
+    try {
+      const p = await studentProfile()
+      setHasAttPwd(p.has_attendance_password)
+    } catch {}
+  }
 
   const loadTab = async () => {
     setLoading(true); setError(''); setData(null)
@@ -60,15 +81,35 @@ function StudentPanel({ user, onLogout }) {
       else if (tab === 'exercises') setData(await studentExercises())
       else if (tab === 'notifications') { setData(await studentNotifications()); await studentMarkRead(); setUnread(0) }
       else if (tab === 'rating') setData(await studentRating())
+      else if (tab === 'profile') { const p = await studentProfile(); setData(p); setHasAttPwd(p.has_attendance_password) }
     } catch (e) { setError(e.message) }
     finally { setLoading(false) }
   }
 
+  // Davomat
+  const doAttendance = async () => {
+    if (!attPassword.trim()) { msg('', 'Parolni kiriting!'); return }
+    try {
+      const r = await studentAttendance(attPassword)
+      msg(r.message); setAttDone(true); setAttPassword('')
+    } catch (e) { msg('', e.message) }
+  }
+
+  // Parol saqlash
+  const saveAttPassword = async () => {
+    if (!newPwd || !confirmPwd) { msg('', 'Barcha maydonlarni to\'ldiring!'); return }
+    try {
+      await studentSetAttPassword({ password: newPwd, confirm_password: confirmPwd })
+      msg('Davomat paroli saqlandi ✅'); setNewPwd(''); setConfirmPwd(''); setHasAttPwd(true)
+    } catch (e) { msg('', e.message) }
+  }
+
+  // Test
   const startTest = async (lesson) => {
     try {
       setLoading(true)
       const r = await studentStartTest(lesson)
-      setTestQuestions(r.questions); setTestAnswers({}); setTestStarted(r.started_at)
+      setTestQuestions(r.questions); setTestAnswers({})
       startedRef.current = r.started_at; lessonRef.current = lesson
       setTestTimer(r.time_limit_seconds); setTestResult(null)
     } catch (e) { msg('', e.message) }
@@ -101,6 +142,7 @@ function StudentPanel({ user, onLogout }) {
     { id: 'exercises', label: '💪 Mashqlar' },
     { id: 'notifications', label: `🔔 Xabarlar${unread > 0 ? ` (${unread})` : ''}` },
     { id: 'rating', label: '🏆 Reyting' },
+    { id: 'profile', label: '👤 Profil' },
   ]
 
   // ═══ Test ishlash ═══
@@ -126,7 +168,7 @@ function StudentPanel({ user, onLogout }) {
                 if (!val) return null
                 const sel = testAnswers[q.id] === opt
                 return (
-                  <label key={opt} className={`glass-card ${sel ? 'active' : ''}`}
+                  <label key={opt} className="glass-card"
                     style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',marginBottom:'6px',cursor:'pointer',borderColor: sel?'var(--accent-cyan)':'var(--glass-border)',background: sel?'rgba(0,145,234,0.08)':'var(--glass-bg)'}}
                     onClick={() => setTestAnswers({...testAnswers, [q.id]: opt})}>
                     <span style={{fontSize:'18px',color:'var(--accent-cyan)'}}>{sel ? '●' : '○'}</span>
@@ -194,39 +236,124 @@ function StudentPanel({ user, onLogout }) {
           {success && <div className="alert alert-success">✅ {success}</div>}
           {loading && <p className="loading-state">⏳ Yuklanmoqda...</p>}
 
-          {/* Home */}
-          {tab === 'home' && data && (
+          {/* ═══ Home ═══ */}
+          {tab === 'home' && !loading && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <div className="welcome-card">
                 <h1>Salom, {user.fullname}! 👋</h1>
                 <p>{user.direction} • {user.soha} • {user.technology}</p>
               </div>
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-icon">📝</div>
-                  <div className="stat-label">Test ballari</div>
-                  <div className="stat-value">{data.grades?.total_test_score || 0}</div>
+
+              {/* Davomat bloki */}
+              <div className="glass-card" style={{marginBottom:'24px',textAlign:'center'}}>
+                <h3 style={{color:'var(--text-primary)',marginBottom:'16px'}}>📅 Bugungi davomat</h3>
+                {attDone ? (
+                  <div>
+                    <div style={{fontSize:'48px',marginBottom:'8px'}}>✅</div>
+                    <p style={{color:'var(--success)',fontWeight:600,fontSize:'16px'}}>Davomat belgilangan!</p>
+                  </div>
+                ) : !hasAttPwd ? (
+                  <div>
+                    <div style={{fontSize:'48px',marginBottom:'8px'}}>🔒</div>
+                    <p style={{color:'var(--text-muted)',marginBottom:'12px'}}>Avval <b>Profil</b> sahifasida davomat paroli yarating</p>
+                    <button onClick={() => setTab('profile')} className="gradient-btn" style={{width:'auto',margin:'0 auto',padding:'10px 24px'}}>
+                      👤 Profilga o'tish
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{maxWidth:'350px',margin:'0 auto'}}>
+                    <p style={{color:'var(--text-muted)',marginBottom:'12px'}}>Davomat parolingizni kiriting:</p>
+                    <div style={{display:'flex',gap:'8px'}}>
+                      <input
+                        type="password"
+                        placeholder="Davomat paroli"
+                        value={attPassword}
+                        onChange={e => setAttPassword(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && doAttendance()}
+                        className="form-input"
+                        style={{flex:1}}
+                      />
+                      <button onClick={doAttendance} className="gradient-btn" style={{width:'auto',padding:'10px 24px'}}>
+                        ✅ Davomat
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Statistika */}
+              {data && (
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <div className="stat-icon">📝</div>
+                    <div className="stat-label">Test ballari</div>
+                    <div className="stat-value">{data.grades?.total_test_score || 0}</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">📋</div>
+                    <div className="stat-label">Vazifa ballari</div>
+                    <div className="stat-value">{data.grades?.total_hw_score || 0}</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">🏆</div>
+                    <div className="stat-label">Jami ball</div>
+                    <div className="stat-value accent">{data.grades?.total_score || 0}</div>
+                  </div>
+                  <div className="stat-card">
+                    <div className="stat-icon">📅</div>
+                    <div className="stat-label">Davomat</div>
+                    <div className="stat-value">{data.attendance?.length || 0} kun</div>
+                  </div>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-icon">📋</div>
-                  <div className="stat-label">Vazifa ballari</div>
-                  <div className="stat-value">{data.grades?.total_hw_score || 0}</div>
+              )}
+            </div>
+          )}
+
+          {/* ═══ Profile ═══ */}
+          {tab === 'profile' && !loading && (
+            <div style={{animation:'fadeIn 0.4s ease',maxWidth:'500px'}}>
+              <h2 style={{color:'var(--text-primary)',marginBottom:'20px'}}>👤 Profil</h2>
+
+              {data && (
+                <div className="glass-card" style={{marginBottom:'20px'}}>
+                  <div style={{display:'grid',gap:'12px'}}>
+                    <div><span style={{color:'var(--text-muted)',fontSize:'13px'}}>Ism</span><p style={{color:'var(--text-primary)',fontWeight:600,margin:0}}>{data.fullname}</p></div>
+                    <div><span style={{color:'var(--text-muted)',fontSize:'13px'}}>Telefon</span><p style={{color:'var(--text-primary)',margin:0}}>{data.phone}</p></div>
+                    <div><span style={{color:'var(--text-muted)',fontSize:'13px'}}>Yo'nalish</span><p style={{color:'var(--text-primary)',margin:0}}>{data.direction}</p></div>
+                    <div><span style={{color:'var(--text-muted)',fontSize:'13px'}}>Texnologiya</span><p style={{color:'var(--accent-cyan)',fontWeight:600,margin:0}}>{data.technology}</p></div>
+                  </div>
                 </div>
-                <div className="stat-card">
-                  <div className="stat-icon">🏆</div>
-                  <div className="stat-label">Jami ball</div>
-                  <div className="stat-value accent">{data.grades?.total_score || 0}</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-icon">📅</div>
-                  <div className="stat-label">Davomat</div>
-                  <div className="stat-value">{data.attendance?.length || 0} kun</div>
+              )}
+
+              <div className="glass-card">
+                <h3 style={{color:'var(--text-primary)',marginBottom:'4px'}}>🔐 Davomat paroli</h3>
+                <p style={{color:'var(--text-muted)',fontSize:'13px',marginBottom:'16px'}}>
+                  {hasAttPwd ? 'Parolingiz mavjud. Yangilash uchun qayta kiriting.' : 'Davomat qilish uchun parol yarating (kamida 4 belgi).'}
+                </p>
+                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                  <input
+                    type="password"
+                    placeholder="Yangi parol (kamida 4 belgi)"
+                    value={newPwd}
+                    onChange={e => setNewPwd(e.target.value)}
+                    className="form-input"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Parolni tasdiqlang"
+                    value={confirmPwd}
+                    onChange={e => setConfirmPwd(e.target.value)}
+                    className="form-input"
+                  />
+                  <button onClick={saveAttPassword} className="gradient-btn">
+                    {hasAttPwd ? '🔄 Parolni yangilash' : '✅ Parol yaratish'}
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* Tests */}
+          {/* ═══ Tests ═══ */}
           {tab === 'tests' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>📝 Testlar</h2>
@@ -252,7 +379,7 @@ function StudentPanel({ user, onLogout }) {
             </div>
           )}
 
-          {/* Homework */}
+          {/* ═══ Homework ═══ */}
           {tab === 'homework' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <h2 style={{color:'var(--text-primary)',marginBottom:'8px'}}>📋 Vazifalar</h2>
@@ -285,7 +412,7 @@ function StudentPanel({ user, onLogout }) {
             </div>
           )}
 
-          {/* Exercises */}
+          {/* ═══ Exercises ═══ */}
           {tab === 'exercises' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>💪 Mashqlar</h2>
@@ -301,7 +428,7 @@ function StudentPanel({ user, onLogout }) {
             </div>
           )}
 
-          {/* Notifications */}
+          {/* ═══ Notifications ═══ */}
           {tab === 'notifications' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>🔔 Xabarlar</h2>
@@ -317,7 +444,7 @@ function StudentPanel({ user, onLogout }) {
             </div>
           )}
 
-          {/* Rating */}
+          {/* ═══ Rating ═══ */}
           {tab === 'rating' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <h2 style={{color:'var(--text-primary)',marginBottom:'8px'}}>🏆 Reyting</h2>
