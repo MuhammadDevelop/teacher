@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { registerUser } from '../api'
+import ThemeToggle from '../components/ThemeToggle'
 
 const UserIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -117,6 +118,7 @@ function RegisterPage({ onNavigate }) {
     <div className="auth-page">
       <div className="floating-orbs"><div className="orb orb-1"/><div className="orb orb-2"/><div className="orb orb-3"/></div>
       <div className="auth-card" style={{animation: 'slideUp 0.6s ease'}}>
+        <div style={{position:'absolute',top:'16px',right:'16px'}}><ThemeToggle /></div>
         <div className="auth-logo">
           <div className="logo-icon">🎓</div>
           <h1 className="auth-title">Ro'yxatdan O'tish</h1>

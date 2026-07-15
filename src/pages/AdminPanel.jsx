@@ -5,6 +5,7 @@ import {
   adminExercises, adminCreateExercise, adminDeleteExercise,
   adminTransferCourse, adminDailyGrades, adminRating, adminSubmissions, adminGradeSubmission
 } from '../api'
+import ThemeToggle from '../components/ThemeToggle'
 
 const DIRECTIONS = ['Dasturlash', 'Microsoft dasturlari']
 const SOHA_MAP = { 'Dasturlash': ['Frontend', 'Backend'], 'Microsoft dasturlari': [] }
@@ -124,7 +125,10 @@ function AdminPanel({ user, onLogout }) {
           <span style={{fontSize:'24px'}}>🎓</span>
           <span style={{color:'var(--text-primary)',fontWeight:700,fontSize:'18px'}}>Admin Panel</span>
         </div>
-        <button onClick={onLogout} style={logoutStyle}>🚪 Chiqish</button>
+        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+          <ThemeToggle />
+          <button onClick={onLogout} style={logoutStyle}>🚪 Chiqish</button>
+        </div>
       </header>
 
       <div style={{display:'flex',flex:1,position:'relative',zIndex:1}}>
@@ -269,12 +273,12 @@ function AdminPanel({ user, onLogout }) {
   )
 }
 
-// Styles
-const headerStyle = {width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:'16px 24px',borderBottom:'1px solid var(--glass-border)',background:'rgba(15,12,41,0.9)',backdropFilter:'blur(20px)',position:'sticky',top:0,zIndex:10}
-const logoutStyle = {background:'rgba(255,82,82,0.15)',border:'1px solid rgba(255,82,82,0.3)',borderRadius:'10px',color:'#ff5252',padding:'8px 16px',cursor:'pointer',fontSize:'13px',fontFamily:'var(--font-family)'}
-const sidebarStyle = {width:'200px',borderRight:'1px solid var(--glass-border)',padding:'16px 8px',display:'flex',flexDirection:'column',gap:'4px',background:'rgba(15,12,41,0.5)',backdropFilter:'blur(10px)',overflowY:'auto',maxHeight:'calc(100vh - 64px)'}
+// Styles — CSS variable based (dark/light compatible)
+const headerStyle = {width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:'16px 24px',borderBottom:'1px solid var(--glass-border)',background:'var(--header-bg)',backdropFilter:'blur(20px)',position:'sticky',top:0,zIndex:10}
+const logoutStyle = {background:'var(--error-bg)',border:'1px solid var(--error)',borderRadius:'10px',color:'var(--error)',padding:'8px 16px',cursor:'pointer',fontSize:'13px',fontFamily:'var(--font-family)'}
+const sidebarStyle = {width:'200px',borderRight:'1px solid var(--glass-border)',padding:'16px 8px',display:'flex',flexDirection:'column',gap:'4px',background:'var(--sidebar-bg)',backdropFilter:'blur(10px)',overflowY:'auto',maxHeight:'calc(100vh - 64px)'}
 const navBtn = {background:'transparent',border:'none',color:'var(--text-muted)',padding:'10px 12px',borderRadius:'8px',cursor:'pointer',fontSize:'13px',textAlign:'left',fontFamily:'var(--font-family)',transition:'all 0.2s'}
-const navActive = {background:'rgba(0,210,255,0.1)',color:'var(--accent-cyan)'}
+const navActive = {background:'rgba(0,145,234,0.1)',color:'var(--accent-cyan)'}
 const filterRow = {display:'flex',gap:'8px',marginBottom:'16px',flexWrap:'wrap'}
 const selectStyle = {padding:'10px 12px',background:'var(--input-bg)',border:'1px solid var(--input-border)',borderRadius:'8px',color:'var(--input-text)',fontSize:'13px',fontFamily:'var(--font-family)',outline:'none',appearance:'none',minWidth:'160px'}
 const addBtn = {padding:'10px 16px',background:'var(--accent-gradient)',border:'none',borderRadius:'8px',color:'white',fontWeight:600,cursor:'pointer',fontSize:'13px',fontFamily:'var(--font-family)'}
@@ -284,10 +288,10 @@ const formGrid = {display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}
 const inputStyle = {padding:'10px 14px',background:'var(--input-bg)',border:'1px solid var(--input-border)',borderRadius:'8px',color:'var(--input-text)',fontSize:'14px',fontFamily:'var(--font-family)',outline:'none',width:'100%'}
 const tableStyle = {width:'100%',borderCollapse:'collapse'}
 const th = {padding:'10px 12px',textAlign:'left',color:'var(--text-muted)',fontSize:'12px',textTransform:'uppercase',borderBottom:'1px solid var(--glass-border)',whiteSpace:'nowrap'}
-const td = {padding:'10px 12px',borderBottom:'1px solid rgba(255,255,255,0.04)',color:'var(--text-secondary)',fontSize:'13px'}
+const td = {padding:'10px 12px',borderBottom:'1px solid var(--glass-border)',color:'var(--text-secondary)',fontSize:'13px'}
 const trStyle = {transition:'background 0.2s'}
 const delBtn = {background:'none',border:'none',cursor:'pointer',fontSize:'16px',padding:'4px'}
-const transferBtn = {background:'rgba(0,210,255,0.1)',border:'1px solid rgba(0,210,255,0.2)',borderRadius:'6px',color:'var(--accent-cyan)',cursor:'pointer',padding:'4px 10px',fontSize:'13px',fontFamily:'var(--font-family)'}
+const transferBtn = {background:'rgba(0,145,234,0.1)',border:'1px solid rgba(0,145,234,0.2)',borderRadius:'6px',color:'var(--accent-cyan)',cursor:'pointer',padding:'4px 10px',fontSize:'13px',fontFamily:'var(--font-family)'}
 const badge = {padding:'3px 10px',borderRadius:'12px',fontSize:'12px',fontWeight:500}
 
 export default AdminPanel

@@ -4,6 +4,7 @@ import {
   studentHomework, studentSubmitHomework, studentUploadHomework, studentEditHomework,
   studentExercises, studentNotifications, studentMarkRead, studentRating, studentMyGrades
 } from '../api'
+import ThemeToggle from '../components/ThemeToggle'
 
 function StudentPanel({ user, onLogout }) {
   const [tab, setTab] = useState('home')
@@ -210,7 +211,10 @@ function StudentPanel({ user, onLogout }) {
           <span style={{color:'var(--text-primary)',fontWeight:600}}>{user.fullname}</span>
           <span style={{color:'var(--text-muted)',fontSize:'13px'}}>• {user.technology}</span>
         </div>
-        <button onClick={onLogout} style={logoutStyle}>🚪 Chiqish</button>
+        <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
+          <ThemeToggle />
+          <button onClick={onLogout} style={logoutStyle}>🚪 Chiqish</button>
+        </div>
       </header>
 
       <div style={{display:'flex',flex:1,position:'relative',zIndex:1}}>
@@ -390,23 +394,23 @@ function StudentPanel({ user, onLogout }) {
   )
 }
 
-// Styles
-const headerStyle = {width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:'16px 24px',borderBottom:'1px solid var(--glass-border)',background:'rgba(15,12,41,0.9)',backdropFilter:'blur(20px)',position:'sticky',top:0,zIndex:10}
-const logoutStyle = {background:'rgba(255,82,82,0.15)',border:'1px solid rgba(255,82,82,0.3)',borderRadius:'10px',color:'#ff5252',padding:'8px 16px',cursor:'pointer',fontSize:'13px',fontFamily:'var(--font-family)'}
-const sidebarStyle = {width:'200px',borderRight:'1px solid var(--glass-border)',padding:'16px 8px',display:'flex',flexDirection:'column',gap:'4px',background:'rgba(15,12,41,0.5)',overflowY:'auto',maxHeight:'calc(100vh - 64px)'}
+// Styles — CSS variable based (dark/light compatible)
+const headerStyle = {width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:'16px 24px',borderBottom:'1px solid var(--glass-border)',background:'var(--header-bg)',backdropFilter:'blur(20px)',position:'sticky',top:0,zIndex:10}
+const logoutStyle = {background:'var(--error-bg)',border:'1px solid var(--error)',borderRadius:'10px',color:'var(--error)',padding:'8px 16px',cursor:'pointer',fontSize:'13px',fontFamily:'var(--font-family)'}
+const sidebarStyle = {width:'200px',borderRight:'1px solid var(--glass-border)',padding:'16px 8px',display:'flex',flexDirection:'column',gap:'4px',background:'var(--sidebar-bg)',overflowY:'auto',maxHeight:'calc(100vh - 64px)'}
 const navBtn = {background:'transparent',border:'none',color:'var(--text-muted)',padding:'10px 12px',borderRadius:'8px',cursor:'pointer',fontSize:'13px',textAlign:'left',fontFamily:'var(--font-family)',transition:'all 0.2s'}
-const navActive = {background:'rgba(0,210,255,0.1)',color:'var(--accent-cyan)'}
+const navActive = {background:'rgba(0,145,234,0.1)',color:'var(--accent-cyan)'}
 const cardStyle = {background:'var(--glass-bg)',border:'1px solid var(--glass-border)',borderRadius:'16px',padding:'20px',transition:'all 0.3s'}
 const gridStyle = {display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(170px,1fr))',gap:'16px',marginTop:'20px'}
-const timerStyle = {fontSize:'20px',fontWeight:700,fontVariantNumeric:'tabular-nums',padding:'8px 16px',background:'rgba(0,0,0,0.3)',borderRadius:'10px'}
+const timerStyle = {fontSize:'20px',fontWeight:700,fontVariantNumeric:'tabular-nums',padding:'8px 16px',background:'var(--input-bg)',borderRadius:'10px'}
 const optionStyle = {display:'flex',alignItems:'center',gap:'10px',padding:'10px 14px',borderRadius:'10px',cursor:'pointer',marginBottom:'6px',border:'1px solid var(--glass-border)',transition:'all 0.2s',color:'var(--text-secondary)'}
-const optionActive = {borderColor:'var(--accent-cyan)',background:'rgba(0,210,255,0.08)',color:'var(--text-primary)'}
+const optionActive = {borderColor:'var(--accent-cyan)',background:'rgba(0,145,234,0.08)',color:'var(--text-primary)'}
 const radioStyle = {fontSize:'18px',color:'var(--accent-cyan)'}
 const badgeStyle = {padding:'4px 12px',borderRadius:'12px',fontSize:'12px',fontWeight:500,whiteSpace:'nowrap'}
-const smallBtn = {padding:'6px 12px',background:'rgba(0,210,255,0.1)',border:'1px solid rgba(0,210,255,0.2)',borderRadius:'8px',color:'var(--accent-cyan)',cursor:'pointer',fontSize:'12px',fontFamily:'var(--font-family)',display:'flex',alignItems:'center',gap:'4px'}
+const smallBtn = {padding:'6px 12px',background:'rgba(0,145,234,0.1)',border:'1px solid rgba(0,145,234,0.2)',borderRadius:'8px',color:'var(--accent-cyan)',cursor:'pointer',fontSize:'12px',fontFamily:'var(--font-family)',display:'flex',alignItems:'center',gap:'4px'}
 const tableStyle = {width:'100%',borderCollapse:'collapse'}
 const th = {padding:'10px 12px',textAlign:'left',color:'var(--text-muted)',fontSize:'12px',textTransform:'uppercase',borderBottom:'1px solid var(--glass-border)'}
-const tdStyle = {padding:'10px 12px',borderBottom:'1px solid rgba(255,255,255,0.04)',color:'var(--text-secondary)',fontSize:'13px'}
+const tdStyle = {padding:'10px 12px',borderBottom:'1px solid var(--glass-border)',color:'var(--text-secondary)',fontSize:'13px'}
 const trStyle = {transition:'background 0.2s'}
 
 export default StudentPanel
