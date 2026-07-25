@@ -26,14 +26,17 @@ export const adminTests = (params = '') => request(`${API}/admin/tests?${params}
 export const adminCreateTest = (d) => request(`${API}/admin/tests`, { method: 'POST', body: JSON.stringify(d) });
 export const adminUpdateTest = (id, d) => request(`${API}/admin/tests/${id}`, { method: 'PUT', body: JSON.stringify(d) });
 export const adminDeleteTest = (id) => request(`${API}/admin/tests/${id}`, { method: 'DELETE' });
+export const adminDeleteAllTests = () => request(`${API}/admin/tests/all`, { method: 'DELETE' });
 export const adminHomework = (params = '') => request(`${API}/admin/homework-tasks?${params}`);
 export const adminCreateHomework = (d) => request(`${API}/admin/homework-tasks`, { method: 'POST', body: JSON.stringify(d) });
 export const adminUpdateHomework = (id, d) => request(`${API}/admin/homework-tasks/${id}`, { method: 'PUT', body: JSON.stringify(d) });
 export const adminDeleteHomework = (id) => request(`${API}/admin/homework-tasks/${id}`, { method: 'DELETE' });
+export const adminDeleteAllHomework = () => request(`${API}/admin/homework-tasks/all`, { method: 'DELETE' });
 export const adminExercises = (params = '') => request(`${API}/admin/exercises?${params}`);
 export const adminCreateExercise = (d) => request(`${API}/admin/exercises`, { method: 'POST', body: JSON.stringify(d) });
 export const adminUpdateExercise = (id, d) => request(`${API}/admin/exercises/${id}`, { method: 'PUT', body: JSON.stringify(d) });
 export const adminDeleteExercise = (id) => request(`${API}/admin/exercises/${id}`, { method: 'DELETE' });
+export const adminDeleteAllExercises = () => request(`${API}/admin/exercises/all`, { method: 'DELETE' });
 export const adminTransferCourse = (d) => request(`${API}/admin/transfer-course`, { method: 'POST', body: JSON.stringify(d) });
 export const adminSubmissions = (params = '') => request(`${API}/admin/submissions?${params}`);
 export const adminGradeSubmission = (id, d) => request(`${API}/admin/submissions/${id}/grade`, { method: 'PUT', body: JSON.stringify(d) });

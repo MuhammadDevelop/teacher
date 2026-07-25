@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import {
-  adminDashboard, adminStudents, adminDeleteStudent, adminTests, adminCreateTest, adminUpdateTest, adminDeleteTest,
-  adminHomework, adminCreateHomework, adminDeleteHomework,
-  adminExercises, adminCreateExercise, adminDeleteExercise,
+  adminDashboard, adminStudents, adminDeleteStudent, adminTests, adminCreateTest, adminUpdateTest, adminDeleteTest, adminDeleteAllTests,
+  adminHomework, adminCreateHomework, adminDeleteHomework, adminDeleteAllHomework,
+  adminExercises, adminCreateExercise, adminDeleteExercise, adminDeleteAllExercises,
   adminTransferCourse, adminDailyGrades, adminRating, adminSubmissions, adminGradeSubmission
 } from '../api'
 import ThemeToggle from '../components/ThemeToggle'
@@ -80,6 +80,18 @@ function AdminPanel({ user, onLogout }) {
       else if (tab==='exercises') await adminDeleteExercise(id)
       msg("O'chirildi ✅"); loadTab()
     } catch(e) { msg('',e.message) }
+  }
+
+  const handleDeleteAll = async () => {
+    if (!confirm(`Haqiqatan ham barcha ${tab} ma'lumotlarini o'chirib yubormoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi!`)) return
+    try {
+      setLoading(true)
+      if (tab==='tests') await adminDeleteAllTests()
+      else if (tab==='homework') await adminDeleteAllHomework()
+      else if (tab==='exercises') await adminDeleteAllExercises()
+      msg("Barchasi muvaffaqiyatli o'chirildi ✅"); loadTab()
+    } catch(e) { msg('',e.message) }
+    finally { setLoading(false) }
   }
 
   const handleDeleteStudent = async (id, name) => {
@@ -216,9 +228,14 @@ function AdminPanel({ user, onLogout }) {
                 {ALL_TECHS.map(t => <option key={t}>{t}</option>)}
               </select>
               {['tests','homework','exercises'].includes(tab) && (
-                <button onClick={() => { setShowForm(!showForm); setForm({direction:filterDir, technology:filterTech}) }} className="add-btn">
-                  {showForm ? '✕ Yopish' : '➕ Qo\'shish'}
-                </button>
+                <div style={{display:'flex', gap:'12px'}}>
+                  <button onClick={() => { setShowForm(!showForm); setForm({direction:filterDir, technology:filterTech}) }} className="add-btn">
+                    {showForm ? '✖ Yopish' : '➕ Qo\'shish'}
+                  </button>
+                  <button onClick={handleDeleteAll} className="delete-btn" style={{background:'var(--error)',color:'white',padding:'10px 18px',borderRadius:'var(--radius-sm)',fontWeight:600,fontSize:'13px'}}>
+                    🗑 Barchasini o'chirish
+                  </button>
+                </div>
               )}
             </div>
           )}
