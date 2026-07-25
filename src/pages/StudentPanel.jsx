@@ -359,8 +359,8 @@ function StudentPanel({ user, onLogout }) {
               <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>📝 Testlar</h2>
               {(data.tests || []).length === 0 ? <p className="empty-state">Test mavjud emas</p> :
                 <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-                  {data.tests.map(t => (
-                    <div key={t.lesson_number} className="glass-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  {data.tests.map((t, i) => (
+                    <div key={t.lesson_number} className="glass-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center', animationDelay: `${i * 0.05}s`}}>
                       <div>
                         <p style={{color:'var(--text-primary)',fontWeight:600,margin:0}}>Dars {t.lesson_number}</p>
                         <p style={{color:'var(--text-muted)',fontSize:'13px',margin:0}}>{t.test_count} ta savol</p>
@@ -385,8 +385,8 @@ function StudentPanel({ user, onLogout }) {
               <h2 style={{color:'var(--text-primary)',marginBottom:'8px'}}>📋 Vazifalar</h2>
               {data.can_submit && <p style={{color:'var(--success)',fontSize:'13px',marginBottom:'16px'}}>⏱ Topshirish muddati: {new Date(data.deadline).toLocaleTimeString()} gacha</p>}
               {!data.can_submit && <p style={{color:'var(--error)',fontSize:'13px',marginBottom:'16px'}}>⚠️ Topshirish muddati tugagan yoki davomat qilinmagan</p>}
-              {(data.tasks || []).map(t => (
-                <div key={t.id} className="glass-card" style={{marginBottom:'12px'}}>
+              {(data.tasks || []).map((t, i) => (
+                <div key={t.id} className="glass-card" style={{marginBottom:'12px', animationDelay: `${i * 0.05}s`}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'12px'}}>
                     <div style={{flex:1}}>
                       <p style={{color:'var(--text-primary)',fontWeight:600,margin:'0 0 4px'}}>{t.title}</p>
@@ -417,8 +417,8 @@ function StudentPanel({ user, onLogout }) {
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>💪 Mashqlar</h2>
               {(data.exercises || []).length === 0 ? <p className="empty-state">Mashq mavjud emas</p> :
-                (data.exercises || []).map(e => (
-                  <div key={e.id} className="glass-card" style={{marginBottom:'12px'}}>
+                (data.exercises || []).map((e, i) => (
+                  <div key={e.id} className="glass-card" style={{marginBottom:'12px', animationDelay: `${i * 0.05}s`}}>
                     <p style={{color:'var(--text-primary)',fontWeight:600,margin:0}}>{e.title}</p>
                     {e.description && <p style={{color:'var(--text-muted)',fontSize:'13px',margin:'4px 0 0'}}>{e.description}</p>}
                     <span style={{color:'var(--text-muted)',fontSize:'12px'}}>Dars {e.lesson_number}</span>
@@ -433,8 +433,8 @@ function StudentPanel({ user, onLogout }) {
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>🔔 Xabarlar</h2>
               {(data.notifications || []).length === 0 ? <p className="empty-state">Xabar yo'q</p> :
-                data.notifications.map(n => (
-                  <div key={n.id} className="glass-card" style={{marginBottom:'8px', borderLeft: n.is_read ? 'none' : '3px solid var(--accent-cyan)'}}>
+                data.notifications.map((n, i) => (
+                  <div key={n.id} className="glass-card" style={{marginBottom:'8px', borderLeft: n.is_read ? 'none' : '3px solid var(--accent-cyan)', animationDelay: `${i * 0.05}s`}}>
                     <p style={{color:'var(--text-primary)',fontWeight:600,margin:'0 0 4px'}}>{n.title}</p>
                     <p style={{color:'var(--text-secondary)',fontSize:'14px',margin:0}}>{n.message}</p>
                     <span style={{color:'var(--text-muted)',fontSize:'12px'}}>{new Date(n.created_at).toLocaleString()}</span>

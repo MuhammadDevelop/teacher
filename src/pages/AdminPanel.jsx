@@ -239,7 +239,7 @@ function AdminPanel({ user, onLogout }) {
                   {l:'Mashqlar', v:stats.total_exercises, i:'💪', c:'#a855f7'},
                   {l:'Bugungi davomat', v:stats.today_attendance, i:'📅', c:'var(--success)'},
                 ].map((s,i) => (
-                  <div key={i} className="stat-card">
+                  <div key={i} className="stat-card" style={{animationDelay: `${i * 0.05}s`}}>
                     <div className="stat-icon">{s.i}</div>
                     <div className="stat-label">{s.l}</div>
                     <div className="stat-value" style={{color:s.c}}>{s.v}</div>
