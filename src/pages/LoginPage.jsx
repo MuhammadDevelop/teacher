@@ -144,7 +144,16 @@ function LoginPage({ onLogin, onNavigate }) {
           <button className={`auth-tab ${tab === 'admin' ? 'active' : ''}`} onClick={() => { setTab('admin'); setError('') }}>🔑 Admin</button>
         </div>
 
-        {error && <div className="alert alert-error">⚠️ {error}</div>}
+        {error && (
+          <div className="alert alert-error" style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+            <span>⚠️ {error}</span>
+            {error.toLowerCase().includes('bot') && (
+              <a href="https://t.me/turonustoz_bot" target="_blank" rel="noreferrer" style={{color:'#fff', textDecoration:'underline', fontWeight:600}}>
+                🤖 Botga o'tish va raqamni yuborish
+              </a>
+            )}
+          </div>
+        )}
         {success && <div className="alert alert-success">✅ {success}</div>}
 
         {tab === 'student' ? (
@@ -161,9 +170,15 @@ function LoginPage({ onLogin, onNavigate }) {
                     className="input-with-prefix" />
                 </div>
               </div>
-              <button className="gradient-btn" onClick={handleSendCode} disabled={loading}>
+              <button className="gradient-btn" onClick={handleSendCode} disabled={loading} style={{marginBottom:'16px'}}>
                 {loading ? <span className="spinner" /> : '📩 Kod yuborish'}
               </button>
+              <div style={{background:'var(--glass-bg)', padding:'12px', borderRadius:'var(--radius-sm)', border:'1px solid var(--glass-border)'}}>
+                <p style={{fontSize:'13px', color:'var(--text-secondary)', margin:'0 0 8px'}}>Tasdiqlash kodini olish uchun avval Telegram botimizga kiring:</p>
+                <a href="https://t.me/turonustoz_bot" target="_blank" rel="noreferrer" style={{display:'inline-flex', alignItems:'center', justifyContent:'center', width:'100%', padding:'10px', background:'rgba(0, 210, 255, 0.1)', color:'var(--accent-cyan)', border:'1px solid var(--accent-cyan)', borderRadius:'8px', textDecoration:'none', fontWeight:600, fontSize:'14px'}}>
+                  🤖 @turonustoz_bot ga o'tish
+                </a>
+              </div>
             </div>
           ) : (
             <div className="form-section" key="step2">

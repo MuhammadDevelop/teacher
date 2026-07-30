@@ -98,12 +98,27 @@ function RegisterPage({ onNavigate }) {
           <div style={{fontSize: '64px', marginBottom: '16px'}}>✅</div>
           <h2 style={{color: 'var(--text-primary)', marginBottom: '12px', fontSize: '24px'}}>Muvaffaqiyatli!</h2>
           <p style={{color: 'var(--text-secondary)', marginBottom: '24px', lineHeight: '1.6'}}>
-            Ro'yxatdan o'tdingiz! Endi Telegram botga <b style={{color: 'var(--accent-cyan)'}}>/start</b> yozing va telefon raqamingizni yuboring.
-            <br/>Sizga <b style={{color: 'var(--accent-cyan)'}}>tasdiqlash kodi</b> yuboriladi.
+            Ro'yxatdan o'tdingiz! Tizimga kirish uchun avval <b>Telegram botimizga</b> kirib raqamingizni tasdiqlashingiz kerak.
           </p>
+          <a href="https://t.me/turonustoz_bot" target="_blank" rel="noreferrer" 
+             style={{
+               display: 'inline-block',
+               background: 'var(--accent-cyan)',
+               color: '#000',
+               fontWeight: 'bold',
+               padding: '14px 24px',
+               borderRadius: '12px',
+               textDecoration: 'none',
+               marginBottom: '24px',
+               boxShadow: '0 4px 15px rgba(0, 210, 255, 0.3)'
+             }}>
+            🤖 Telegram Botga O'tish
+          </a>
           <div style={{background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '16px', marginBottom: '24px'}}>
             <p style={{color: 'var(--text-muted)', fontSize: '14px', margin: 0}}>
-              📱 Bot → /start → Raqam yuboring → Kod oling → Saytda kiriting
+              1. Botga o'ting va <b>/start</b> bosing.<br/>
+              2. <b>📞 Raqam yuborish</b> tugmasini bosing.<br/>
+              3. Qaytib kelib tizimga kiring.
             </p>
           </div>
           <button className="gradient-btn" onClick={onNavigate} style={{width: '100%'}}>
