@@ -1053,3 +1053,150 @@ body {
   /* Make table headers and cells tighter on small screens */
   .data-table th, .data-table td { padding: 10px; font-size: 12px; }
 }
+/* =========================================
+   EXTREME UI/UX REVAMP (GLASSMORPHISM 2.0)
+   ========================================= */
+
+:root {
+  --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  --accent-cyan: #00f2fe;
+  --glass-bg: rgba(20, 20, 35, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  --glow-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+}
+
+body {
+  background: radial-gradient(circle at 10% 20%, rgb(14, 14, 25) 0%, rgb(30, 30, 50) 90%);
+  background-attachment: fixed;
+}
+
+.glass-card {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease, border-color 0.4s ease !important;
+}
+
+.glass-card:hover {
+  transform: translateY(-5px) scale(1.01) !important;
+  box-shadow: 0 15px 45px rgba(0,0,0,0.6), var(--glow-shadow) !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.action-btn, .gradient-btn, .add-btn, .submit-btn {
+  background: var(--primary-gradient) !important;
+  box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn::after, .gradient-btn::after, .add-btn::after, .submit-btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.action-btn:hover, .gradient-btn:hover, .add-btn:hover, .submit-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(0, 242, 254, 0.5) !important;
+  filter: brightness(1.1) !important;
+}
+
+.action-btn:active::after, .gradient-btn:active::after, .add-btn:active::after, .submit-btn:active::after {
+  transform: scale(20, 20) translate(-50%);
+  opacity: 1;
+  transition: transform 0.5s, opacity 0.5s;
+}
+
+.data-table tr {
+  transition: all 0.3s ease !important;
+}
+
+.data-table tr:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: scale(1.005) !important;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+}
+
+/* Staggered Animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(0, 242, 254, 0.6); }
+  100% { box-shadow: 0 0 10px rgba(0, 242, 254, 0.2); }
+}
+
+@keyframes floatAnim {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.stagger-1 { animation: fadeInUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both; }
+.stagger-2 { animation: fadeInUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both; }
+.stagger-3 { animation: fadeInUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.3s both; }
+.stagger-4 { animation: fadeInUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.4s both; }
+.stagger-5 { animation: fadeInUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s both; }
+
+.float-element {
+  animation: floatAnim 4s ease-in-out infinite;
+}
+
+.glow-text {
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+}
+
+.badge {
+  transition: all 0.3s ease;
+}
+
+.badge:hover {
+  transform: scale(1.1);
+}
+
+.stat-card {
+  animation: floatAnim 6s ease-in-out infinite;
+}
+.stat-card:nth-child(even) {
+  animation-delay: 1s;
+}
+
+.rating-medal-1 {
+  font-size: 24px;
+  filter: drop-shadow(0 0 10px gold);
+  animation: pulseGlow 2s infinite;
+}
+
+.rating-medal-2 {
+  font-size: 22px;
+  filter: drop-shadow(0 0 8px silver);
+}
+
+.rating-medal-3 {
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px #cd7f32);
+}

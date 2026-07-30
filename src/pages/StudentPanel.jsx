@@ -162,7 +162,7 @@ function StudentPanel({ user, onLogout }) {
         <header className="panel-header">
           <div className="panel-header-left">
             <span className="brand-icon">📝</span>
-            <span className="brand-name">Test — Dars {lessonRef.current}</span>
+            <span className="brand-name glow-text">Test — Dars {lessonRef.current}</span>
           </div>
           <div style={{fontSize:'20px',fontWeight:700,fontVariantNumeric:'tabular-nums',padding:'8px 16px',background:'var(--input-bg)',borderRadius:'10px',color: testTimer < 60 ? 'var(--error)' : 'var(--accent-cyan)'}}>
             ⏱ {fmtTime(testTimer)}
@@ -323,7 +323,7 @@ function StudentPanel({ user, onLogout }) {
           {/* ═══ Profile ═══ */}
           {tab === 'profile' && !loading && (
             <div style={{animation:'fadeIn 0.4s ease',maxWidth:'500px'}}>
-              <h2 style={{color:'var(--text-primary)',marginBottom:'20px'}}>👤 Profil</h2>
+              <h2 className="glow-text" style={{color:'var(--text-primary)',marginBottom:'20px'}}>👤 Profil</h2>
 
               {data && (
                 <div className="glass-card" style={{marginBottom:'20px'}}>
@@ -367,11 +367,11 @@ function StudentPanel({ user, onLogout }) {
           {/* ═══ Tests ═══ */}
           {tab === 'tests' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
-              <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>📝 Testlar</h2>
+              <h2 className="glow-text" style={{color:'var(--text-primary)',marginBottom:'16px'}}>📝 Testlar</h2>
               {(data.tests || []).length === 0 ? <p className="empty-state">Test mavjud emas</p> :
                 <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                   {data.tests.map((t, i) => (
-                    <div key={t.lesson_number} className="glass-card" style={{display:'flex',justifyContent:'space-between',alignItems:'center', animationDelay: `${i * 0.05}s`}}>
+                    <div key={t.lesson_number} className={`glass-card stagger-${(i%5)+1}`} style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                       <div>
                         <p style={{color:'var(--text-primary)',fontWeight:600,margin:0}}>Dars {t.lesson_number}</p>
                         <p style={{color:'var(--text-muted)',fontSize:'13px',margin:0}}>{t.test_count} ta savol</p>
@@ -393,11 +393,11 @@ function StudentPanel({ user, onLogout }) {
           {/* ═══ Homework ═══ */}
           {tab === 'homework' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
-              <h2 style={{color:'var(--text-primary)',marginBottom:'8px'}}>📋 Vazifalar</h2>
+              <h2 className="glow-text" style={{color:'var(--text-primary)',marginBottom:'8px'}}>📋 Vazifalar</h2>
               {data.can_submit && <p style={{color:'var(--success)',fontSize:'13px',marginBottom:'16px'}}>⏱ Topshirish muddati: {new Date(data.deadline).toLocaleTimeString()} gacha</p>}
               {!data.can_submit && <p style={{color:'var(--error)',fontSize:'13px',marginBottom:'16px'}}>⚠️ Topshirish muddati tugagan yoki davomat qilinmagan</p>}
               {(data.tasks || []).map((t, i) => (
-                <div key={t.id} className="glass-card" style={{marginBottom:'12px', animationDelay: `${i * 0.05}s`}}>
+                <div key={t.id} className={`glass-card stagger-${(i%5)+1}`} style={{marginBottom:'12px'}}>
                   <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:'12px'}}>
                     <div style={{flex:1}}>
                       <p style={{color:'var(--text-primary)',fontWeight:600,margin:'0 0 4px'}}>{t.title}</p>
@@ -428,10 +428,10 @@ function StudentPanel({ user, onLogout }) {
           {/* ═══ Exercises ═══ */}
           {tab === 'exercises' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
-              <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>💪 Mashqlar</h2>
+              <h2 className="glow-text" style={{color:'var(--text-primary)',marginBottom:'16px'}}>💪 Mashqlar</h2>
               {(data.exercises || []).length === 0 ? <p className="empty-state">Mashq mavjud emas</p> :
                 (data.exercises || []).map((e, i) => (
-                  <div key={e.id} className="glass-card" style={{marginBottom:'12px', animationDelay: `${i * 0.05}s`}}>
+                  <div key={e.id} className={`glass-card stagger-${(i%5)+1}`} style={{marginBottom:'12px'}}>
                     <p style={{color:'var(--text-primary)',fontWeight:600,margin:0}}>{e.title}</p>
                     {e.description && <p style={{color:'var(--text-muted)',fontSize:'13px',margin:'4px 0 0'}}>{e.description}</p>}
                     <span style={{color:'var(--text-muted)',fontSize:'12px'}}>Dars {e.lesson_number}</span>
@@ -444,10 +444,10 @@ function StudentPanel({ user, onLogout }) {
           {/* ═══ Notifications ═══ */}
           {tab === 'notifications' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
-              <h2 style={{color:'var(--text-primary)',marginBottom:'16px'}}>🔔 Xabarlar</h2>
+              <h2 className="glow-text" style={{color:'var(--text-primary)',marginBottom:'16px'}}>🔔 Xabarlar</h2>
               {(data.notifications || []).length === 0 ? <p className="empty-state">Xabar yo'q</p> :
                 data.notifications.map((n, i) => (
-                  <div key={n.id} className="glass-card" style={{marginBottom:'8px', borderLeft: n.is_read ? 'none' : '3px solid var(--accent-cyan)', animationDelay: `${i * 0.05}s`}}>
+                  <div key={n.id} className={`glass-card stagger-${(i%5)+1}`} style={{marginBottom:'8px', borderLeft: n.is_read ? 'none' : '3px solid var(--accent-cyan)'}}>
                     <p style={{color:'var(--text-primary)',fontWeight:600,margin:'0 0 4px'}}>{n.title}</p>
                     <p style={{color:'var(--text-secondary)',fontSize:'14px',margin:0}}>{n.message}</p>
                     <span style={{color:'var(--text-muted)',fontSize:'12px'}}>{new Date(n.created_at).toLocaleString()}</span>
@@ -460,7 +460,7 @@ function StudentPanel({ user, onLogout }) {
           {/* ═══ Rating ═══ */}
           {tab === 'rating' && data && (
             <div style={{animation:'fadeIn 0.4s ease'}}>
-              <h2 style={{color:'var(--text-primary)',marginBottom:'8px'}}>🏆 Reyting</h2>
+              <h2 className="glow-text" style={{color:'var(--text-primary)',marginBottom:'8px'}}>🏆 Reyting</h2>
               {data.my_rank && <p style={{color:'var(--accent-cyan)',marginBottom:'16px'}}>Sizning o'rningiz: <b>#{data.my_rank}</b></p>}
               <div className="table-responsive">
                 <table className="data-table">
@@ -469,11 +469,13 @@ function StudentPanel({ user, onLogout }) {
                   </thead>
                   <tbody>
                     {(data.rating || []).map((r, i) => (
-                      <tr key={r.id} style={{background: r.id === user.id ? 'rgba(0,145,234,0.08)' : 'transparent'}}>
-                        <td style={{fontWeight:700,color:i<3?'gold':'var(--text-muted)'}}>{i+1}</td>
-                        <td>{r.fullname} {r.id === user.id ? '⭐' : ''}</td>
-                        <td>{r.test_balls}</td>
-                        <td>{r.hw_balls}</td>
+                      <tr key={r.id} className={`stagger-${(i%5)+1}`} style={{background: r.id === user.id ? 'rgba(0,145,234,0.08)' : 'transparent'}}>
+                        <td className={i===0?'rating-medal-1':i===1?'rating-medal-2':i===2?'rating-medal-3':''} style={{fontWeight:700,color:i<3?'gold':'var(--text-muted)'}}>
+                          {i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}
+                        </td>
+                        <td>{r.fullname} {r.id === user.id ? '👤' : ''}</td>
+                        <td><span className="badge badge-info">{r.test_balls}</span></td>
+                        <td><span className="badge badge-success">{r.hw_balls}</span></td>
                         <td style={{fontWeight:700,color:'var(--accent-cyan)'}}>{r.total}</td>
                       </tr>
                     ))}

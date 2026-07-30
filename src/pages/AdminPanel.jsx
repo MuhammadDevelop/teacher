@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  adminDashboard, adminStudents, adminDeleteStudent, adminTests, adminCreateTest, adminCreateBulkTests, adminUpdateTest, adminDeleteTest, adminDeleteAllTests,
+  adminDashboard, adminStudents, adminDeleteStudent, adminDeleteAllStudents, adminTests, adminCreateTest, adminCreateBulkTests, adminUpdateTest, adminDeleteTest, adminDeleteAllTests,
   adminHomework, adminCreateHomework, adminDeleteHomework, adminDeleteAllHomework,
   adminExercises, adminCreateExercise, adminDeleteExercise, adminDeleteAllExercises,
   adminTransferCourse, adminDailyGrades, adminRating, adminSubmissions, adminGradeSubmission
@@ -101,12 +101,22 @@ function AdminPanel({ user, onLogout }) {
   }
 
   const handleDeleteAll = async () => {
-    if (!confirm(`Haqiqatan ham barcha ${tab} ma'lumotlarini o'chirib yubormoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi!`)) return
+    if (tab === 'students') {
+      const ans = prompt("DIQQAT: Barcha o'quvchilar va ularning ma'lumotlari to'liq o'chib ketadi! Tasdiqlash uchun 'OCHIRISH' so'zini yozing:")
+      if (ans !== 'OCHIRISH') {
+        msg('', "Xato so'z kiritildi. Bekor qilindi.")
+        return
+      }
+    } else {
+      if (!confirm(`Haqiqatan ham barcha ${tab} ma'lumotlarini o'chirib yubormoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi!`)) return
+    }
+    
     try {
       setLoading(true)
       if (tab==='tests') await adminDeleteAllTests()
       else if (tab==='homework') await adminDeleteAllHomework()
       else if (tab==='exercises') await adminDeleteAllExercises()
+      else if (tab==='students') await adminDeleteAllStudents()
       msg("Barchasi muvaffaqiyatli o'chirildi ✅"); loadTab()
     } catch(e) { msg('',e.message) }
     finally { setLoading(false) }
@@ -268,6 +278,13 @@ function AdminPanel({ user, onLogout }) {
                   </button>
                   <button onClick={handleDeleteAll} className="delete-btn" style={{background:'var(--error)',color:'white',padding:'10px 18px',borderRadius:'var(--radius-sm)',fontWeight:600,fontSize:'13px'}}>
                     🗑 Barchasini o'chirish
+                  </button>
+                </div>
+              )}
+              {tab === 'students' && (
+                <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
+                  <button onClick={handleDeleteAll} className="delete-btn" style={{background:'var(--error)',color:'white',padding:'10px 18px',borderRadius:'var(--radius-sm)',fontWeight:600,fontSize:'13px',boxShadow:'0 4px 15px rgba(255, 82, 82, 0.3)'}}>
+                    🗑 Barcha studentlarni o'chirish
                   </button>
                 </div>
               )}
@@ -433,7 +450,7 @@ function AdminPanel({ user, onLogout }) {
                       </thead>
                       <tbody>
                         {data.map((r,i) => (
-                          <tr key={r.id||i}>
+                          <tr key={r.id||i} className={`stagger-${(i%5)+1}`}>
                             {tab==='tests' && <>
                               <td style={{color:'var(--text-muted)'}}>{i+1}</td>
                               <td style={{maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.question}</td>
@@ -482,10 +499,12 @@ function AdminPanel({ user, onLogout }) {
                               <td style={{fontWeight:700,color:'var(--accent-cyan)',fontSize:'16px'}}>{r.total_score}</td>
                             </>}
                             {tab==='rating' && <>
-                              <td style={{fontWeight:700,fontSize:'16px',color:i<3?'gold':'var(--text-muted)'}}>{i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</td>
+                              <td className={i===0?'rating-medal-1':i===1?'rating-medal-2':i===2?'rating-medal-3':''} style={{fontWeight:700,fontSize:'16px',color:i<3?'gold':'var(--text-muted)'}}>
+                                {i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}
+                              </td>
                               <td style={{fontWeight:600}}>{r.fullname}</td>
-                              <td>{r.test_balls}</td>
-                              <td>{r.hw_balls}</td>
+                              <td><span className="badge badge-info">{r.test_balls}</span></td>
+                              <td><span className="badge badge-success">{r.hw_balls}</span></td>
                               <td>{r.attendance_days}</td>
                               <td style={{fontWeight:700,color:'var(--accent-cyan)',fontSize:'16px'}}>{r.total}</td>
                             </>}
