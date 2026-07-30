@@ -42,9 +42,16 @@ function StudentPanel({ user, onLogout }) {
   useEffect(() => { loadTab() }, [tab])
 
   useEffect(() => {
-    const handler = () => { if (document.hidden && testQuestions && startedRef.current) finishTest(true) }
+    const handler = () => { if ((document.hidden || !document.hasFocus()) && testQuestions && startedRef.current) finishTest(true) }
+    const blurHandler = () => { if (testQuestions && startedRef.current) finishTest(true) }
+    
     document.addEventListener('visibilitychange', handler)
-    return () => document.removeEventListener('visibilitychange', handler)
+    window.addEventListener('blur', blurHandler)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handler)
+      window.removeEventListener('blur', blurHandler)
+    }
   }, [testQuestions, testAnswers])
 
   useEffect(() => {
