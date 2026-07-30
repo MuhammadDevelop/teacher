@@ -28,6 +28,8 @@ function StudentPanel({ user, onLogout }) {
   const [testAnswers, setTestAnswers] = useState({})
   const [testTimer, setTestTimer] = useState(600)
   const [testResult, setTestResult] = useState(null)
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const timerRef = useRef(null)
   const startedRef = useRef(null)
   const lessonRef = useRef(null)
@@ -211,6 +213,7 @@ function StudentPanel({ user, onLogout }) {
 
       <header className="panel-header">
         <div className="panel-header-left">
+          <button className="menu-toggle-btn" onClick={() => setIsSidebarOpen(true)}>☰</button>
           <span className="brand-icon">🎓</span>
           <span className="brand-name">{user.fullname}</span>
           <span className="user-info">• {user.technology}</span>
@@ -222,9 +225,10 @@ function StudentPanel({ user, onLogout }) {
       </header>
 
       <div className="panel-body">
-        <nav className="panel-sidebar">
+        <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}></div>
+        <nav className={`panel-sidebar ${isSidebarOpen ? 'open' : ''}`}>
           {tabs.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)}
+            <button key={t.id} onClick={() => { setTab(t.id); setIsSidebarOpen(false) }}
               className={`panel-nav-btn ${tab === t.id ? 'active' : ''}`}>
               {t.label}
             </button>
@@ -449,22 +453,24 @@ function StudentPanel({ user, onLogout }) {
             <div style={{animation:'fadeIn 0.4s ease'}}>
               <h2 style={{color:'var(--text-primary)',marginBottom:'8px'}}>🏆 Reyting</h2>
               {data.my_rank && <p style={{color:'var(--accent-cyan)',marginBottom:'16px'}}>Sizning o'rningiz: <b>#{data.my_rank}</b></p>}
-              <table className="data-table">
-                <thead>
-                  <tr><th>🏆</th><th>Ism</th><th>Test</th><th>Vazifa</th><th>Jami</th></tr>
-                </thead>
-                <tbody>
-                  {(data.rating || []).map((r, i) => (
-                    <tr key={r.id} style={{background: r.id === user.id ? 'rgba(0,145,234,0.08)' : 'transparent'}}>
-                      <td style={{fontWeight:700,color:i<3?'gold':'var(--text-muted)'}}>{i+1}</td>
-                      <td>{r.fullname} {r.id === user.id ? '⭐' : ''}</td>
-                      <td>{r.test_balls}</td>
-                      <td>{r.hw_balls}</td>
-                      <td style={{fontWeight:700,color:'var(--accent-cyan)'}}>{r.total}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <div className="table-responsive">
+                <table className="data-table">
+                  <thead>
+                    <tr><th>🏆</th><th>Ism</th><th>Test</th><th>Vazifa</th><th>Jami</th></tr>
+                  </thead>
+                  <tbody>
+                    {(data.rating || []).map((r, i) => (
+                      <tr key={r.id} style={{background: r.id === user.id ? 'rgba(0,145,234,0.08)' : 'transparent'}}>
+                        <td style={{fontWeight:700,color:i<3?'gold':'var(--text-muted)'}}>{i+1}</td>
+                        <td>{r.fullname} {r.id === user.id ? '⭐' : ''}</td>
+                        <td>{r.test_balls}</td>
+                        <td>{r.hw_balls}</td>
+                        <td style={{fontWeight:700,color:'var(--accent-cyan)'}}>{r.total}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </main>

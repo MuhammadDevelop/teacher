@@ -27,6 +27,7 @@ function AdminPanel({ user, onLogout }) {
   const [filterDir, setFilterDir] = useState('')
   const [filterTech, setFilterTech] = useState('')
   const [form, setForm] = useState({})
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // Transfer modal
   const [transferModal, setTransferModal] = useState(null)
@@ -193,6 +194,7 @@ function AdminPanel({ user, onLogout }) {
 
       <header className="panel-header">
         <div className="panel-header-left">
+          <button className="menu-toggle-btn" onClick={() => setIsSidebarOpen(true)}>☰</button>
           <span className="brand-icon">🎓</span>
           <span className="brand-name">Admin Panel</span>
         </div>
@@ -203,9 +205,10 @@ function AdminPanel({ user, onLogout }) {
       </header>
 
       <div className="panel-body">
-        <nav className="panel-sidebar">
+        <div className={`sidebar-overlay ${isSidebarOpen ? 'active' : ''}`} onClick={() => setIsSidebarOpen(false)}></div>
+        <nav className={`panel-sidebar ${isSidebarOpen ? 'open' : ''}`}>
           {tabs.map(t => (
-            <button key={t.id} onClick={() => { setTab(t.id); setShowForm(false) }}
+            <button key={t.id} onClick={() => { setTab(t.id); setShowForm(false); setIsSidebarOpen(false) }}
               className={`panel-nav-btn ${tab===t.id?'active':''}`}>
               {t.icon} {t.label}
             </button>
