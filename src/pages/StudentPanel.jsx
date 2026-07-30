@@ -398,7 +398,9 @@ function StudentPanel({ user, onLogout }) {
                       <span style={{color:'var(--text-muted)',fontSize:'12px'}}>Dars {t.lesson_number}</span>
                     </div>
                     {t.submission_id ? (
-                      <span className="badge badge-success">✅ {t.score} ball</span>
+                      <span className={`badge ${t.score === null ? 'badge-info' : 'badge-success'}`}>
+                        {t.score === null ? '⏳ Kutilmoqda' : `✅ ${t.score} ball`}
+                      </span>
                     ) : data.can_submit ? (
                       <div style={{display:'flex',gap:'8px'}}>
                         <button className="action-btn" onClick={() => { const link = prompt("Havola kiriting:"); if (link) submitHomework(t.id, link) }}>🔗 Link</button>
