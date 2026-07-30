@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import {
-  adminDashboard, adminStudents, adminDeleteStudent, adminTests, adminCreateTest, adminUpdateTest, adminDeleteTest, adminDeleteAllTests,
+  adminDashboard, adminStudents, adminDeleteStudent, adminTests, adminCreateTest, adminCreateBulkTests, adminUpdateTest, adminDeleteTest, adminDeleteAllTests,
   adminHomework, adminCreateHomework, adminDeleteHomework, adminDeleteAllHomework,
   adminExercises, adminCreateExercise, adminDeleteExercise, adminDeleteAllExercises,
   adminTransferCourse, adminDailyGrades, adminRating, adminSubmissions, adminGradeSubmission
@@ -63,11 +63,28 @@ function AdminPanel({ user, onLogout }) {
   const handleCreate = async () => {
     setLoading(true)
     try {
-      const payload = { ...form }
-      if (!payload.course) payload.course = payload.direction || ''
-      if (tab==='tests') await adminCreateTest(payload)
-      else if (tab==='homework') await adminCreateHomework(payload)
-      else if (tab==='exercises') await adminCreateExercise(payload)
+      if (tab === 'tests') {
+        const qs = form.questions || []
+        if (qs.length !== 10) throw new Error("Aynan 10 ta savol kiritilishi shart!")
+        for (let i=0; i<10; i++) {
+          if (!qs[i].question || !qs[i].option_a || !qs[i].option_b || !qs[i].correct_option) {
+            throw new Error(`${i+1}-savol to'liq to'ldirilmagan!`)
+          }
+        }
+        const payload = qs.map(q => ({
+          ...q,
+          course: form.direction || '',
+          direction: form.direction,
+          technology: form.technology,
+          lesson_number: form.lesson_number
+        }))
+        await adminCreateBulkTests(payload)
+      } else {
+        const payload = { ...form }
+        if (!payload.course) payload.course = payload.direction || ''
+        if (tab==='homework') await adminCreateHomework(payload)
+        else if (tab==='exercises') await adminCreateExercise(payload)
+      }
       msg('Yaratildi ✅'); setShowForm(false); setForm({}); loadTab()
     } catch(e) { msg('',e.message) }
     finally { setLoading(false) }
@@ -232,7 +249,21 @@ function AdminPanel({ user, onLogout }) {
               </select>
               {['tests','homework','exercises'].includes(tab) && (
                 <div style={{display:'flex', gap:'12px'}}>
-                  <button onClick={() => { setShowForm(!showForm); setForm({direction:filterDir, technology:filterTech}) }} className="add-btn">
+                  <button onClick={() => { 
+                    setShowForm(!showForm); 
+                    if (!showForm && tab === 'tests') {
+                      setForm({
+                        direction: filterDir, 
+                        technology: filterTech,
+                        lesson_number: 1,
+                        questions: Array.from({length: 10}, () => ({
+                          question:'', option_a:'', option_b:'', option_c:'', option_d:'', correct_option:'A'
+                        }))
+                      })
+                    } else {
+                      setForm({direction:filterDir, technology:filterTech, lesson_number:1}) 
+                    }
+                  }} className="add-btn">
                     {showForm ? '✖ Yopish' : '➕ Qo\'shish'}
                   </button>
                   <button onClick={handleDeleteAll} className="delete-btn" style={{background:'var(--error)',color:'white',padding:'10px 18px',borderRadius:'var(--radius-sm)',fontWeight:600,fontSize:'13px'}}>
@@ -311,36 +342,52 @@ function AdminPanel({ user, onLogout }) {
                   <input type="number" min="1" placeholder="1" value={form.lesson_number||''} onChange={e => setForm({...form, lesson_number:parseInt(e.target.value)||1})} className="form-input" />
                 </div>
 
-                {/* Test fields */}
-                {tab === 'tests' && <>
-                  <div style={{gridColumn:'1/-1'}}>
-                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Savol *</label>
-                    <input placeholder="Test savolini yozing..." value={form.question||''} onChange={e => setForm({...form, question:e.target.value})} className="form-input" />
+                {/* Test fields (10 ta savol) */}
+                {tab === 'tests' && form.questions && form.questions.map((q, idx) => (
+                  <div key={idx} style={{gridColumn:'1/-1', background:'var(--input-bg)', padding:'16px', borderRadius:'var(--radius-sm)', border:'1px solid var(--input-border)', marginBottom:'12px'}}>
+                    <h4 style={{color:'var(--accent-cyan)', marginBottom:'12px', fontSize:'14px'}}>{idx + 1}-Savol</h4>
+                    <div className="form-grid">
+                      <div style={{gridColumn:'1/-1'}}>
+                        <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Savol *</label>
+                        <input placeholder="Test savolini yozing..." value={q.question} onChange={e => {
+                          const newQ = [...form.questions]; newQ[idx].question = e.target.value; setForm({...form, questions: newQ});
+                        }} className="form-input" />
+                      </div>
+                      <div>
+                        <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>A variant *</label>
+                        <input placeholder="A)" value={q.option_a} onChange={e => {
+                          const newQ = [...form.questions]; newQ[idx].option_a = e.target.value; setForm({...form, questions: newQ});
+                        }} className="form-input" />
+                      </div>
+                      <div>
+                        <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>B variant *</label>
+                        <input placeholder="B)" value={q.option_b} onChange={e => {
+                          const newQ = [...form.questions]; newQ[idx].option_b = e.target.value; setForm({...form, questions: newQ});
+                        }} className="form-input" />
+                      </div>
+                      <div>
+                        <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>C variant</label>
+                        <input placeholder="C)" value={q.option_c} onChange={e => {
+                          const newQ = [...form.questions]; newQ[idx].option_c = e.target.value; setForm({...form, questions: newQ});
+                        }} className="form-input" />
+                      </div>
+                      <div>
+                        <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>D variant</label>
+                        <input placeholder="D)" value={q.option_d} onChange={e => {
+                          const newQ = [...form.questions]; newQ[idx].option_d = e.target.value; setForm({...form, questions: newQ});
+                        }} className="form-input" />
+                      </div>
+                      <div>
+                        <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>To'g'ri javob *</label>
+                        <select value={q.correct_option} onChange={e => {
+                          const newQ = [...form.questions]; newQ[idx].correct_option = e.target.value; setForm({...form, questions: newQ});
+                        }} className="form-input">
+                          <option>A</option><option>B</option><option>C</option><option>D</option>
+                        </select>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>A variant *</label>
-                    <input placeholder="A)" value={form.option_a||''} onChange={e => setForm({...form, option_a:e.target.value})} className="form-input" />
-                  </div>
-                  <div>
-                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>B variant *</label>
-                    <input placeholder="B)" value={form.option_b||''} onChange={e => setForm({...form, option_b:e.target.value})} className="form-input" />
-                  </div>
-                  <div>
-                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>C variant</label>
-                    <input placeholder="C)" value={form.option_c||''} onChange={e => setForm({...form, option_c:e.target.value})} className="form-input" />
-                  </div>
-                  <div>
-                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>D variant</label>
-                    <input placeholder="D)" value={form.option_d||''} onChange={e => setForm({...form, option_d:e.target.value})} className="form-input" />
-                  </div>
-                  <div>
-                    <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>To'g'ri javob *</label>
-                    <select value={form.correct_option||''} onChange={e => setForm({...form, correct_option:e.target.value})} className="form-input">
-                      <option value="">Tanlang</option>
-                      <option>A</option><option>B</option><option>C</option><option>D</option>
-                    </select>
-                  </div>
-                </>}
+                ))}
 
                 {/* Homework/Exercise fields */}
                 {(tab==='homework' || tab==='exercises') && <>

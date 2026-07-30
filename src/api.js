@@ -24,6 +24,7 @@ export const adminDeleteStudent = (id) => request(`${API}/admin/students/${id}`,
 export const adminCheckDuplicates = () => request(`${API}/admin/check-duplicates`);
 export const adminTests = (params = '') => request(`${API}/admin/tests?${params}`);
 export const adminCreateTest = (d) => request(`${API}/admin/tests`, { method: 'POST', body: JSON.stringify(d) });
+export const adminCreateBulkTests = (d) => request(`${API}/admin/tests/bulk`, { method: 'POST', body: JSON.stringify(d) });
 export const adminUpdateTest = (id, d) => request(`${API}/admin/tests/${id}`, { method: 'PUT', body: JSON.stringify(d) });
 export const adminDeleteTest = (id) => request(`${API}/admin/tests/${id}`, { method: 'DELETE' });
 export const adminDeleteAllTests = () => request(`${API}/admin/tests/all`, { method: 'DELETE' });
