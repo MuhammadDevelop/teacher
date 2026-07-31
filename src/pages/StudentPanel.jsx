@@ -6,6 +6,7 @@ import {
   studentExercises, studentNotifications, studentMarkRead, studentRating, studentMyGrades
 } from '../api'
 import ThemeToggle from '../components/ThemeToggle'
+import { PromptModal } from '../components/Modals'
 
 function StudentPanel({ user, onLogout }) {
   const [tab, setTab] = useState('home')
@@ -28,6 +29,8 @@ function StudentPanel({ user, onLogout }) {
   const [testAnswers, setTestAnswers] = useState({})
   const [testTimer, setTestTimer] = useState(600)
   const [testResult, setTestResult] = useState(null)
+
+  const [linkModal, setLinkModal] = useState(null)
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const timerRef = useRef(null)
@@ -217,6 +220,20 @@ function StudentPanel({ user, onLogout }) {
   return (
     <div className="panel-wrapper">
       <div className="floating-orbs"><div className="orb orb-1"/><div className="orb orb-2"/><div className="orb orb-3"/></div>
+
+      <PromptModal 
+        isOpen={!!linkModal}
+        title="Vazifa havolasi"
+        text="Github yoki Vercel havolasini kiriting:"
+        placeholder="https://..."
+        onConfirm={(linkVal) => {
+          if (linkVal) {
+            submitHomework(linkModal, linkVal)
+          }
+          setLinkModal(null)
+        }}
+        onCancel={() => setLinkModal(null)}
+      />
 
       <header className="panel-header">
         <div className="panel-header-left">
@@ -410,7 +427,7 @@ function StudentPanel({ user, onLogout }) {
                       </span>
                     ) : data.can_submit ? (
                       <div style={{display:'flex',gap:'8px'}}>
-                        <button className="action-btn" onClick={() => { const link = prompt("Havola kiriting:"); if (link) submitHomework(t.id, link) }}>🔗 Link</button>
+                        <button className="action-btn" onClick={() => setLinkModal(t.id)}>🔗 Link</button>
                         <label className="action-btn" style={{cursor:'pointer'}}>
                           📎 Fayl
                           <input type="file" accept="image/*,.pdf,.doc,.docx" style={{display:'none'}} onChange={e => { if (e.target.files[0]) uploadFile(t.id, e.target.files[0]) }} />

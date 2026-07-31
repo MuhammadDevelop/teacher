@@ -5,7 +5,7 @@ import {
   adminExercises, adminCreateExercise, adminDeleteExercise, adminDeleteAllExercises,
   adminTransferCourse, adminDailyGrades, adminRating, adminSubmissions, adminGradeSubmission
 } from '../api'
-import ThemeToggle from '../components/ThemeToggle'
+import { ConfirmModal, PromptModal } from '../components/Modals'
 
 const DIRECTIONS = ['Dasturlash', 'Microsoft dasturlari']
 const SOHA_MAP = { 'Dasturlash': ['Frontend', 'Backend'], 'Microsoft dasturlari': [] }
@@ -34,6 +34,13 @@ function AdminPanel({ user, onLogout }) {
   const [trDir, setTrDir] = useState('')
   const [trSoha, setTrSoha] = useState('')
   const [trTech, setTrTech] = useState('')
+
+  // Custom Modals
+  const [confirmModal, setConfirmModal] = useState(null)
+  const [promptModal, setPromptModal] = useState(null)
+  const [gradeModal, setGradeModal] = useState(null)
+  const [gradeScore, setGradeScore] = useState('')
+  const [gradeComment, setGradeComment] = useState('')
 
   const msg = (s, e) => { setSuccess(s||''); setError(e||''); if(s) setTimeout(()=>setSuccess(''),3000) }
   useEffect(() => { loadTab() }, [tab, filterDir, filterTech])
@@ -90,27 +97,50 @@ function AdminPanel({ user, onLogout }) {
     finally { setLoading(false) }
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm("O'chirilsinmi?")) return
-    try {
-      if (tab==='tests') await adminDeleteTest(id)
-      else if (tab==='homework') await adminDeleteHomework(id)
-      else if (tab==='exercises') await adminDeleteExercise(id)
-      msg("O'chirildi ✅"); loadTab()
-    } catch(e) { msg('',e.message) }
+  const handleDelete = (id) => {
+    setConfirmModal({
+      title: "O'chirish",
+      text: "Haqiqatan ham o'chirmoqchimisiz?",
+      onConfirm: async () => {
+        setConfirmModal(null)
+        try {
+          if (tab==='tests') await adminDeleteTest(id)
+          else if (tab==='homework') await adminDeleteHomework(id)
+          else if (tab==='exercises') await adminDeleteExercise(id)
+          msg("O'chirildi ✅"); loadTab()
+        } catch(e) { msg('',e.message) }
+      }
+    })
   }
 
-  const handleDeleteAll = async () => {
+  const handleDeleteAll = () => {
     if (tab === 'students') {
-      const ans = prompt("DIQQAT: Barcha o'quvchilar va ularning ma'lumotlari to'liq o'chib ketadi! Tasdiqlash uchun 'OCHIRISH' so'zini yozing:")
-      if (ans !== 'OCHIRISH') {
-        msg('', "Xato so'z kiritildi. Bekor qilindi.")
-        return
-      }
+      setPromptModal({
+        title: "Barcha o'quvchilarni o'chirish",
+        text: "DIQQAT: Barcha o'quvchilar va ularning ma'lumotlari to'liq o'chib ketadi! Tasdiqlash uchun 'OCHIRISH' so'zini yozing:",
+        placeholder: "OCHIRISH",
+        onConfirm: async (ans) => {
+          setPromptModal(null)
+          if (ans !== 'OCHIRISH') {
+            msg('', "Xato so'z kiritildi. Bekor qilindi.")
+            return
+          }
+          executeDeleteAll()
+        }
+      })
     } else {
-      if (!confirm(`Haqiqatan ham barcha ${tab} ma'lumotlarini o'chirib yubormoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi!`)) return
+      setConfirmModal({
+        title: "Barchasini o'chirish",
+        text: `Haqiqatan ham barcha ${tab} ma'lumotlarini o'chirmoqchimisiz? Bu amalni orqaga qaytarib bo'lmaydi!`,
+        onConfirm: () => {
+          setConfirmModal(null)
+          executeDeleteAll()
+        }
+      })
     }
-    
+  }
+
+  const executeDeleteAll = async () => {
     try {
       setLoading(true)
       if (tab==='tests') await adminDeleteAllTests()
@@ -122,12 +152,18 @@ function AdminPanel({ user, onLogout }) {
     finally { setLoading(false) }
   }
 
-  const handleDeleteStudent = async (id, name) => {
-    if (!confirm(`"${name}" ni o'chirmoqchimisiz? Bu qaytarilmas!`)) return
-    try {
-      await adminDeleteStudent(id)
-      msg(`${name} o'chirildi ✅`); loadTab()
-    } catch(e) { msg('',e.message) }
+  const handleDeleteStudent = (id, name) => {
+    setConfirmModal({
+      title: "O'quvchini o'chirish",
+      text: `"${name}" ni o'chirmoqchimisiz? Bu amal qaytarilmas!`,
+      onConfirm: async () => {
+        setConfirmModal(null)
+        try {
+          await adminDeleteStudent(id)
+          msg(`${name} o'chirildi ✅`); loadTab()
+        } catch(e) { msg('',e.message) }
+      }
+    })
   }
 
   const openTransfer = (student) => {
@@ -145,13 +181,17 @@ function AdminPanel({ user, onLogout }) {
     } catch(e) { msg('',e.message) }
   }
 
-  const handleGrade = async (hwId) => {
-    const score = prompt("Ball (0-2):")
-    if (score===null) return
-    const comment = prompt("Izoh:") || ''
+  const handleGrade = (hwId) => {
+    setGradeScore('')
+    setGradeComment('')
+    setGradeModal(hwId)
+  }
+
+  const doGrade = async () => {
+    if (!gradeScore) { msg('', "Ball kiriting!"); return }
     try {
-      await adminGradeSubmission(hwId, { score: parseInt(score), comment })
-      msg("Baholandi ✅"); loadTab()
+      await adminGradeSubmission(gradeModal, { score: parseInt(gradeScore), comment: gradeComment })
+      msg("Baholandi ✅"); setGradeModal(null); loadTab()
     } catch(e) { msg('',e.message) }
   }
 
@@ -174,7 +214,41 @@ function AdminPanel({ user, onLogout }) {
 
   return (
     <div className="panel-wrapper">
-      <div className="floating-orbs"><div className="orb orb-1"/><div className="orb orb-2"/><div className="orb orb-3"/></div>
+      
+      <ConfirmModal 
+        isOpen={!!confirmModal}
+        {...confirmModal}
+        onCancel={() => setConfirmModal(null)}
+      />
+
+      <PromptModal 
+        isOpen={!!promptModal}
+        {...promptModal}
+        onCancel={() => setPromptModal(null)}
+      />
+
+      {/* Grade Modal */}
+      {gradeModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000,animation:'fadeIn 0.2s ease'}}>
+          <div className="glass-card" style={{width:'420px',maxWidth:'90vw',animation:'slideUp 0.3s ease'}}>
+            <h3 style={{color:'var(--text-primary)',marginBottom:'16px'}}>Baholash</h3>
+            <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+              <div>
+                <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Ball (0-2)</label>
+                <input type="number" min="0" max="2" value={gradeScore} onChange={e => setGradeScore(e.target.value)} className="form-input" autoFocus />
+              </div>
+              <div>
+                <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Izoh (ixtiyoriy)</label>
+                <input type="text" value={gradeComment} onChange={e => setGradeComment(e.target.value)} className="form-input" onKeyDown={(e) => { if(e.key === 'Enter') doGrade() }} />
+              </div>
+            </div>
+            <div style={{display:'flex',gap:'10px',marginTop:'20px'}}>
+              <button onClick={() => setGradeModal(null)} className="form-input" style={{cursor:'pointer',textAlign:'center',flex:'0 0 auto',padding:'12px 20px'}}>Bekor</button>
+              <button onClick={doGrade} className="gradient-btn" style={{flex:1}}>Saqlash</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Transfer Modal */}
       {transferModal && (

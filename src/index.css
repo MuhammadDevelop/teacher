@@ -158,25 +158,24 @@ body {
 .orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
   opacity: 0.4;
   transition: background 0.5s ease;
 }
 .orb-1 {
   width: 400px; height: 400px;
-  background: radial-gradient(circle, var(--orb-1), transparent 70%);
+  background: radial-gradient(circle, var(--orb-1) 0%, transparent 60%);
   top: -100px; right: -100px;
   animation: floatOrb 15s ease-in-out infinite;
 }
 .orb-2 {
   width: 350px; height: 350px;
-  background: radial-gradient(circle, var(--orb-2), transparent 70%);
+  background: radial-gradient(circle, var(--orb-2) 0%, transparent 60%);
   bottom: -50px; left: -80px;
   animation: floatOrb 18s ease-in-out infinite reverse;
 }
 .orb-3 {
   width: 250px; height: 250px;
-  background: radial-gradient(circle, var(--orb-3), transparent 70%);
+  background: radial-gradient(circle, var(--orb-3) 0%, transparent 60%);
   top: 50%; left: 50%;
   animation: floatOrb 20s ease-in-out infinite 3s;
 }
