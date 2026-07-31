@@ -5,6 +5,7 @@ import {
   adminExercises, adminCreateExercise, adminDeleteExercise, adminDeleteAllExercises,
   adminTransferCourse, adminDailyGrades, adminRating, adminSubmissions, adminGradeSubmission
 } from '../api'
+import ThemeToggle from '../components/ThemeToggle'
 import { ConfirmModal, PromptModal } from '../components/Modals'
 
 const DIRECTIONS = ['Dasturlash', 'Microsoft dasturlari']
