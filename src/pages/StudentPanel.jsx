@@ -172,9 +172,22 @@ function StudentPanel({ user, onLogout }) {
           </div>
         </header>
         <div style={{flex:1,overflowY:'auto',padding:'28px',maxWidth:'750px',margin:'0 auto',width:'100%'}}>
-          {testQuestions.map((q, i) => (
-            <div key={q.id} className="glass-card" style={{marginBottom:'14px'}}>
-              <p style={{color:'var(--text-primary)',fontWeight:600,marginBottom:'12px'}}>{i+1}. {q.question}</p>
+          {testQuestions.map((q, i) => {
+              const parts = (q.question || '').split('```')
+              return (
+                <div key={q.id} className="glass-card" style={{marginBottom:'14px'}}>
+                  <div style={{marginBottom:'16px'}}>
+                    <p style={{color:'var(--text-primary)',fontWeight:600,marginBottom: parts.length > 1 ? '8px' : '12px'}}>{i+1}. {parts[0]}</p>
+                    {parts.length > 1 && parts.slice(1).map((part, pIdx) => (
+                      pIdx % 2 === 0 ? (
+                        <pre key={pIdx} className="code-block" style={{margin:'8px 0'}}>
+                          <code>{part.replace(/^[\w]+\n/, '').trim()}</code>
+                        </pre>
+                      ) : (
+                        <p key={pIdx} style={{color:'var(--text-primary)',fontWeight:600, margin: '8px 0'}}>{part}</p>
+                      )
+                    ))}
+                  </div>
               {['A','B','C','D'].map(opt => {
                 const val = q[`option_${opt.toLowerCase()}`]
                 if (!val) return null
@@ -189,7 +202,8 @@ function StudentPanel({ user, onLogout }) {
                 )
               })}
             </div>
-          ))}
+          );
+        })}
           <button onClick={() => finishTest(false)} className="gradient-btn" style={{marginTop:'12px'}}>
             ✅ Topshirish ({Object.keys(testAnswers).length}/{testQuestions.length})
           </button>

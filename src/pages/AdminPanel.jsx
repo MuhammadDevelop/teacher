@@ -441,9 +441,9 @@ function AdminPanel({ user, onLogout }) {
                     <div className="form-grid">
                       <div style={{gridColumn:'1/-1'}}>
                         <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>Savol *</label>
-                        <input placeholder="Test savolini yozing..." value={q.question} onChange={e => {
+                        <textarea placeholder="Test savolini yozing... Kod yozish uchun ``` belgisidan foydalaning" value={q.question} onChange={e => {
                           const newQ = [...form.questions]; newQ[idx].question = e.target.value; setForm({...form, questions: newQ});
-                        }} className="form-input" />
+                        }} className="form-input" style={{minHeight:'80px', resize:'vertical', fontFamily:'inherit'}} />
                       </div>
                       <div>
                         <label style={{color:'var(--text-muted)',fontSize:'12px',display:'block',marginBottom:'4px'}}>A variant *</label>
